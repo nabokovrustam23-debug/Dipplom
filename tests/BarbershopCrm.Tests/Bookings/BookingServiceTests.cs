@@ -329,12 +329,12 @@ public class BookingServiceTests : IAsyncLifetime
         db.Bookings.Add(bk);
         await db.SaveChangesAsync();
 
-        var r = await svc.CompleteAsync(new CompleteBookingCommand(bk.BookingId, 1700m, "ok"), _ownerUserId, RoleCode.Owner, default);
+        var r = await svc.CompleteAsync(new CompleteBookingCommand(bk.BookingId, "ok"), _ownerUserId, RoleCode.Owner, default);
         r.Success.Should().BeTrue();
         var saved = await db.Bookings.Include(b => b.Visit).AsNoTracking().FirstAsync(b => b.BookingId == bk.BookingId);
         saved.Status.Should().Be(BookingStatus.Completed);
         saved.Visit.Should().NotBeNull();
-        saved.Visit!.TotalAmount.Should().Be(1700m);
+        saved.Visit!.TotalAmount.Should().Be(1500m);
         saved.Visit.MasterNotes.Should().Be("ok");
     }
 
@@ -352,7 +352,7 @@ public class BookingServiceTests : IAsyncLifetime
         db.Bookings.Add(bk);
         await db.SaveChangesAsync();
 
-        var r = await svc.CompleteAsync(new CompleteBookingCommand(bk.BookingId, 1500m, null), _ownerUserId, RoleCode.Owner, default);
+        var r = await svc.CompleteAsync(new CompleteBookingCommand(bk.BookingId, null), _ownerUserId, RoleCode.Owner, default);
         r.Success.Should().BeFalse();
         r.ErrorCode.Should().Be(BookingErrorCode.ValidationFailed);
     }

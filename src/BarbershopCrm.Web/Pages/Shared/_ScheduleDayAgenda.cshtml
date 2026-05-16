@@ -1,7 +1,7 @@
 @using BarbershopCrm.Domain.Enums
 @model BarbershopCrm.Web.Pages.Shared.ScheduleAgendaViewModel
 @{
-    var postPage = Model.FormTarget == ScheduleAgendaFormTarget.AdminSchedule ? "/Admin/Schedule" : "/Master/Bookings";
+    var postPage = Model.FormTarget == ScheduleAgendaFormTarget.AdminSchedule ? "/Admin/Schedule/Index" : "/Master/Bookings";
 }
 <div class="schedule-agenda">
     @foreach (var sec in Model.Masters)

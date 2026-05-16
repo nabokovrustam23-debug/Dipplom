@@ -97,6 +97,8 @@ public class IndexModel : AppPageModel
         SyncRouteContextForPost();
         if (!ModelState.IsValid)
         {
+            var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            TempData["Error"] = $"Ошибка валидации данных: {errors}";
             await LoadPageDataAsync(ct);
             return Page();
         }
@@ -126,6 +128,17 @@ public class IndexModel : AppPageModel
 
     private void SyncRouteContextForPost()
     {
+        // Читаем BranchId из формы, если не установлен
+        if (!BranchId.HasValue && Request.Form.ContainsKey("BranchId"))
+        {
+            if (int.TryParse(Request.Form["BranchId"], out var branchId))
+                BranchId = branchId;
+        }
+
+        // Читаем Date из формы, если не установлен
+        if (string.IsNullOrWhiteSpace(Date) && Request.Form.ContainsKey("Date"))
+            Date = Request.Form["Date"];
+
         if (Current?.RoleCode == RoleCode.Admin && Current.BranchId.HasValue && !BranchId.HasValue)
             BranchId = Current.BranchId.Value;
 

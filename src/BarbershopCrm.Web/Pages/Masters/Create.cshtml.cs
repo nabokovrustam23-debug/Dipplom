@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BarbershopCrm.Web.Pages.Masters;
 
-[AuthorizePage(RoleCode.Admin, RoleCode.Owner)]
+[AuthorizePage(RoleCode.Owner)]
 public class CreateModel : AppPageModel
 {
     private const string DefaultPosition = "Барбер";
@@ -40,16 +40,6 @@ public class CreateModel : AppPageModel
 
         if (!ModelState.IsValid)
             return Page();
-
-        // Проверка доступа администратора
-        if (Current?.RoleCode == RoleCode.Admin)
-        {
-            if (!Current.BranchId.HasValue || Input.BranchId != Current.BranchId.Value)
-            {
-                ModelState.AddModelError("", "Администратор может создавать мастеров только для своего филиала.");
-                return Page();
-            }
-        }
 
         // Создание персоны
         var persona = new Persona
@@ -105,17 +95,9 @@ public class CreateModel : AppPageModel
             .AsNoTracking()
             .ToListAsync(ct);
 
-        var branchesQuery = _db.Branches.Where(b => b.IsActive);
-
-        // Администратор видит только свой филиал
-        if (Current?.RoleCode == RoleCode.Admin && Current.BranchId.HasValue)
-        {
-            branchesQuery = branchesQuery.Where(b => b.BranchId == Current.BranchId.Value);
-        }
-
-        Branches = await branchesQuery
+        Branches = await _db.Branches.AsNoTracking()
+            .Where(b => b.IsActive)
             .OrderBy(b => b.Name)
-            .AsNoTracking()
             .ToListAsync(ct);
     }
 

@@ -38,6 +38,10 @@
                                         <div class="schedule-agenda__service">@b.Service.Name</div>
                                         <div class="schedule-agenda__meta-line muted">
                                             @b.PriceSnapshot.ToString("0") ₽
+                                            @if (b.LoyaltyDiscountPercent > 0)
+                                            {
+                                                <span class="schedule-agenda__badge schedule-agenda__badge--discount">-@b.LoyaltyDiscountPercent%</span>
+                                            }
                                             @if (!string.IsNullOrWhiteSpace(b.Client.Persona.Phone))
                                             {
                                                 <span class="schedule-agenda__sep">·</span>
@@ -147,6 +151,13 @@
                                                             @{
                                                                 var finalAmount = b.PriceSnapshot * (1 - b.LoyaltyDiscountPercent / 100m);
                                                                 var hasDiscount = b.LoyaltyDiscountPercent > 0;
+                                                                var discountReasonText = hasDiscount ? b.LoyaltyDiscountReason switch
+                                                                {
+                                                                    "Tier" => "Уровень лояльности",
+                                                                    "Birthday" => "День рождения",
+                                                                    "FirstVisit" => "Первый визит",
+                                                                    _ => null
+                                                                } : null;
                                                             }
                                                             <div class="form-group">
                                                                 <span class="schedule-agenda__complete-amount">
@@ -159,7 +170,7 @@
                                                                                 <path d="M12 16v-4"></path>
                                                                                 <path d="M12 8h.01"></path>
                                                                             </svg>
-                                                                            Базовая цена: @b.PriceSnapshot.ToString("0") ₽, скидка @b.LoyaltyDiscountPercent%
+                                                                            @b.PriceSnapshot.ToString("0") ₽ · скидка @b.LoyaltyDiscountPercent%@(discountReasonText != null ? $" · {discountReasonText}" : "")
                                                                         </small>
                                                                     }
                                                                 </span>
@@ -243,3 +254,4 @@
         </section>
     }
 </div>
+

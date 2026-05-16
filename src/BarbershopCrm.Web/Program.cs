@@ -97,6 +97,7 @@ try
         var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("SeedDevData");
         await SeedDevData.ApplyAsync(db, hasher, logger);
+        await SeedBigData.ApplyAsync(db, hasher, logger);
     }
 
     app.Run();

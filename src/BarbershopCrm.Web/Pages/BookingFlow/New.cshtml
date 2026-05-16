@@ -205,6 +205,32 @@
                         }
                     </div>
                     
+                    @if (Model.Loyalty?.CurrentTier is not null)
+                    {
+                        var service = Model.Services.FirstOrDefault(s => s.ServiceId == Model.ServiceId);
+                        if (service is not null)
+                        {
+                            var discountPct = Model.Loyalty.CurrentTier.DiscountPercent;
+                            var finalPrice = service.Price * (1 - discountPct / 100m);
+                            <div class="booking-summary">
+                                <div class="booking-summary__row">
+                                    <span>@service.Name</span>
+                                    <span class="tnum">@service.Price.ToString("0") ₽</span>
+                                </div>
+                                @if (discountPct > 0)
+                                {
+                                    <div class="booking-summary__row booking-summary__row--discount">
+                                        <span>Скидка @discountPct% (@Model.Loyalty.CurrentTier.DisplayName)</span>
+                                        <span class="tnum" style="color: var(--color-success);">−@((service.Price - finalPrice).ToString("0")) ₽</span>
+                                    </div>
+                                }
+                                <div class="booking-summary__total">
+                                    <span>Итого</span>
+                                    <span class="tnum">@finalPrice.ToString("0") ₽</span>
+                                </div>
+                            </div>
+                        }
+                    }
                     <div class="booking-actions">
                         <button type="submit" class="btn btn--primary btn--large">Подтвердить запись</button>
                         <a asp-page="/Account/Bookings/Index" class="btn btn--outline">Мои записи</a>

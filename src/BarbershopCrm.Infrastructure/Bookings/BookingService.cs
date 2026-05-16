@@ -19,13 +19,13 @@ public sealed class BookingService : IBookingService
     public BookingService(
         AppDbContext db,
         IOptions<BookingOptions> opts,
-        INotificationService? notifications = null,
-        ILoyaltyDiscountResolver? loyaltyResolver = null)
+        ILoyaltyDiscountResolver loyaltyResolver,
+        INotificationService? notifications = null)
     {
         _db = db;
         _opts = opts.Value;
-        _notifications = notifications;
         _loyaltyResolver = loyaltyResolver;
+        _notifications = notifications;
     }
 
     public async Task<BookingResult> CreateAsync(CreateBookingCommand cmd, CancellationToken ct)

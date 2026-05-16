@@ -104,7 +104,7 @@ public sealed class LoyaltyService : ILoyaltyService
 
     private static string GetDiscountReasonDisplayName(string reason) => reason switch
     {
-        "LoyaltyTier" => "Уровень лояльности",
+        "Tier" => "Уровень лояльности",
         "Birthday" => "День рождения",
         "FirstVisit" => "Первый визит",
         _ => "Скидка"

@@ -5,7 +5,9 @@
     "google": {
       "options": {
         "baseURL": "http://127.0.0.1:20128/v1"
-      },
+      }
+    }
+  },
   "mcp": {
     "ruflo": {
       "type": "local",

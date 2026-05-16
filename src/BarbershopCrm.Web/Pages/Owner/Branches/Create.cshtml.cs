@@ -1,0 +1,102 @@
+using System.ComponentModel.DataAnnotations;
+using BarbershopCrm.Domain.Entities;
+using BarbershopCrm.Domain.Enums;
+using BarbershopCrm.Infrastructure.Auth;
+using BarbershopCrm.Infrastructure.Data;
+using BarbershopCrm.Web.Auth;
+using BarbershopCrm.Web.Pages;
+using BarbershopCrm.Web.Services;
+using BarbershopCrm.Web.Validation;
+using Microsoft.AspNetCore.Mvc;
+
+namespace BarbershopCrm.Web.Pages.Owner.Branches;
+
+[AuthorizePage(RoleCode.Owner)]
+public class CreateModel : AppPageModel
+{
+    private readonly AppDbContext _db;
+    private readonly IImageUploadService _images;
+
+    public CreateModel(AppDbContext db, ICurrentUserAccessor currentUser, IImageUploadService images) : base(currentUser)
+    {
+        _db = db;
+        _images = images;
+    }
+
+    [BindProperty]
+    public BranchCreateInput Input { get; set; } = new();
+
+    public void OnGet()
+    {
+    }
+
+    public async Task<IActionResult> OnPostAsync(CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+            return Page();
+
+        var branch = new Branch
+        {
+            Name = Input.Name.Trim(),
+            Address = Input.Address.Trim(),
+            Latitude = Input.Latitude,
+            Longitude = Input.Longitude,
+            Phone = string.IsNullOrWhiteSpace(Input.Phone) ? null : Input.Phone.Trim(),
+            OpeningTime = TimeOnly.Parse(Input.OpeningTime),
+            ClosingTime = TimeOnly.Parse(Input.ClosingTime),
+            IsActive = Input.IsActive
+        };
+
+        if (Input.ImageFile is { Length: > 0 })
+        {
+            try
+            {
+                branch.ImageUrl = await _images.SaveAsync(Input.ImageFile, "branches", ct);
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("Input.ImageFile", ex.Message);
+                return Page();
+            }
+        }
+
+        _db.Branches.Add(branch);
+        await _db.SaveChangesAsync(ct);
+
+        TempData["Success"] = $"Филиал «{branch.Name}» успешно создан.";
+        return RedirectToPage("Index");
+    }
+
+    public class BranchCreateInput
+    {
+        [Required(ErrorMessage = "Введите название филиала.")]
+        [StringLength(120, MinimumLength = 2, ErrorMessage = "Название должно быть от 2 до 120 символов.")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Введите адрес.")]
+        [StringLength(300, MinimumLength = 5, ErrorMessage = "Адрес должен быть от 5 до 300 символов.")]
+        public string Address { get; set; } = string.Empty;
+
+        [RegularExpression(PhoneValidation.RussianPhonePattern, ErrorMessage = PhoneValidation.ErrorMessage)]
+        public string? Phone { get; set; }
+
+        [Range(-90, 90, ErrorMessage = "Широта должна быть от -90 до 90.")]
+        public double? Latitude { get; set; }
+
+        [Range(-180, 180, ErrorMessage = "Долгота должна быть от -180 до 180.")]
+        public double? Longitude { get; set; }
+
+        [Display(Name = "Фото филиала")]
+        public IFormFile? ImageFile { get; set; }
+
+        [Required(ErrorMessage = "Укажите время открытия.")]
+        [RegularExpression(@"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$", ErrorMessage = "Формат времени: ЧЧ:ММ")]
+        public string OpeningTime { get; set; } = "09:00";
+
+        [Required(ErrorMessage = "Укажите время закрытия.")]
+        [RegularExpression(@"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$", ErrorMessage = "Формат времени: ЧЧ:ММ")]
+        public string ClosingTime { get; set; } = "21:00";
+
+        public bool IsActive { get; set; } = true;
+    }
+}

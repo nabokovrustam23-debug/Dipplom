@@ -1,0 +1,105 @@
+@page
+@using BarbershopCrm.Domain.Enums
+@model BarbershopCrm.Web.Pages.Admin.Schedule.IndexModel
+@{
+    ViewData["Title"] = "Расписание мастеров";
+    ViewData["ManagementTab"] = "schedule";
+    var isOwner = Model.Current?.RoleCode == RoleCode.Owner;
+    var safeDate = Model.DateValue > DateOnly.MinValue ? Model.DateValue : DateOnly.FromDateTime(DateTime.Today);
+    var prevDay = safeDate.AddDays(-1).ToString("yyyy-MM-dd");
+    var nextDay = safeDate.AddDays(1).ToString("yyyy-MM-dd");
+    var today = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
+}
+
+<partial name="_ManagementTabs" />
+
+<section class="management-section">
+    <div class="schedule-header">
+        <div class="schedule-header__content">
+            <h2>Расписание мастеров</h2>
+            <div class="schedule-header__meta">
+                @if (Model.CurrentBranch is not null)
+                {
+                    <span class="schedule-meta-chip">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        @Model.CurrentBranch.Name
+                    </span>
+                }
+                <span class="schedule-meta-chip schedule-meta-chip--date">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    @BarbershopCrm.Web.Pages.Admin.Schedule.IndexModel.FormatRussianDate(Model.DateValue)
+                </span>
+            </div>
+        </div>
+
+        <form method="get" class="schedule-toolbar">
+            @if (isOwner && Model.Branches.Count > 1)
+            {
+                <div class="schedule-toolbar__group">
+                    <label class="visually-hidden" for="branch-pick">Филиал</label>
+                    <select id="branch-pick" name="branchId" class="input input--compact" onchange="this.form.submit()">
+                        @foreach (var b in Model.Branches)
+                        {
+                            <option value="@b.BranchId" selected="@(b.BranchId == Model.BranchId)">@b.Name</option>
+                        }
+                    </select>
+                </div>
+            }
+            <div class="schedule-toolbar__group schedule-toolbar__nav">
+                <button type="submit" name="Date" value="@prevDay" class="btn btn--icon" aria-label="Предыдущий день" title="Предыдущий день">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <button type="submit" name="Date" value="@today" class="btn btn--outline btn--compact">Сегодня</button>
+                <button type="submit" name="Date" value="@nextDay" class="btn btn--icon" aria-label="Следующий день" title="Следующий день">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+            <div class="schedule-toolbar__group">
+                <label class="visually-hidden" for="Date">Выбрать дату</label>
+                <input type="date" id="Date" name="Date" class="input input--compact input--date" value="@Model.DateValue.ToString("yyyy-MM-dd")" onchange="this.form.submit()" />
+            </div>
+        </form>
+    </div>
+
+    @if (Model.BranchId is null || Model.Masters.Count == 0)
+    {
+        <div class="empty-state">
+            <svg class="empty-state__icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <h3 class="empty-state__title">Нет активных мастеров</h3>
+            <p class="empty-state__text">В этом филиале нет активных мастеров. Добавьте мастера в разделе «Мастера».</p>
+        </div>
+    }
+    else if (Model.Agenda is not null)
+    {
+        @if (TempData["Error"] is string errMsg)
+        {
+            <div class="alert alert--error">@errMsg</div>
+        }
+        @if (TempData["Success"] is string succMsg)
+        {
+            <div class="alert alert--success">@succMsg</div>
+        }
+        <partial name="_ScheduleDayAgenda" model="Model.Agenda" />
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/form-busy.js" asp-append-version="true"></script>
+}

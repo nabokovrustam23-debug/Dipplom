@@ -1,0 +1,229 @@
+@page "/Booking/New"
+@model BarbershopCrm.Web.Pages.BookingFlow.NewModel
+@{
+    ViewData["Title"] = "Запись онлайн";
+    var minDate = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
+    var dateValue = !string.IsNullOrWhiteSpace(Model.Date) ? Model.Date! : minDate;
+    
+    var step = 1;
+    if (Model.BranchId.HasValue) step = 2;
+    if (Model.ServiceId.HasValue) step = 3;
+    if (Model.BranchId.HasValue && Model.ServiceId.HasValue && !string.IsNullOrWhiteSpace(Model.Date)) step = 4;
+    if (Model.BranchId.HasValue && Model.ServiceId.HasValue && Model.Slots.Any()) step = 5;
+}
+
+<div class="booking-wizard">
+    <div class="booking-wizard__header">
+        <h1>Онлайн-запись</h1>
+        <p class="muted">Выберите филиал, услугу, время и подтвердите запись. Если не подобрали слот или нужна консультация — в разделе «Мои записи» есть кнопка «Оставить заявку».</p>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="booking-steps">
+        <div class="booking-step @(step >= 1 ? "booking-step--active" : "") @(step > 1 ? "booking-step--completed" : "")">
+            <div class="booking-step__number">1</div>
+            <div class="booking-step__label">Филиал</div>
+        </div>
+        <div class="booking-step__line @(step > 1 ? "booking-step__line--active" : "")"></div>
+        <div class="booking-step @(step >= 2 ? "booking-step--active" : "") @(step > 2 ? "booking-step--completed" : "")">
+            <div class="booking-step__number">2</div>
+            <div class="booking-step__label">Услуга</div>
+        </div>
+        <div class="booking-step__line @(step > 2 ? "booking-step__line--active" : "")"></div>
+        <div class="booking-step @(step >= 3 ? "booking-step--active" : "") @(step > 3 ? "booking-step--completed" : "")">
+            <div class="booking-step__number">3</div>
+            <div class="booking-step__label">Дата и мастер</div>
+        </div>
+        <div class="booking-step__line @(step > 3 ? "booking-step__line--active" : "")"></div>
+        <div class="booking-step @(step >= 4 ? "booking-step--active" : "") @(step > 4 ? "booking-step--completed" : "")">
+            <div class="booking-step__number">4</div>
+            <div class="booking-step__label">Время</div>
+        </div>
+        <div class="booking-step__line @(step > 4 ? "booking-step__line--active" : "")"></div>
+        <div class="booking-step @(step >= 5 ? "booking-step--active" : "")">
+            <div class="booking-step__number">5</div>
+            <div class="booking-step__label">Подтверждение</div>
+        </div>
+    </div>
+
+    <div asp-validation-summary="All" class="alert alert--error"></div>
+
+    <form method="get" class="booking-wizard__form" data-busy>
+        <!-- Step 1: Branch -->
+        <div class="booking-section">
+            <h2 class="booking-section__title">
+                <span class="booking-section__number">1</span>
+                Выберите филиал
+            </h2>
+            <div class="wizard-cards">
+                @foreach (var b in Model.Branches)
+                {
+                    var isSelected = Model.BranchId == b.BranchId;
+                    <label class="wizard-card @(isSelected ? "wizard-card--selected" : "")">
+                        <input type="radio" name="BranchId" value="@b.BranchId" checked="@isSelected" onchange="this.form.submit()" />
+                        <div class="wizard-card__icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            </svg>
+                        </div>
+                        <div class="wizard-card__info">
+                            <div class="wizard-card__title">@b.Name</div>
+                            <div class="wizard-card__meta">@b.Address</div>
+                            <div class="wizard-card__meta tnum">@b.OpeningTime.ToString("HH:mm") – @b.ClosingTime.ToString("HH:mm")</div>
+                        </div>
+                        @if (isSelected)
+                        {
+                            <div class="wizard-card__check">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                        }
+                    </label>
+                }
+            </div>
+        </div>
+
+        <!-- Step 2: Service -->
+        @if (Model.BranchId.HasValue)
+        {
+            <div class="booking-section">
+                <h2 class="booking-section__title">
+                    <span class="booking-section__number">2</span>
+                    Выберите услугу
+                </h2>
+                <div class="wizard-cards">
+                    @foreach (var s in Model.Services)
+                    {
+                        var isSelected = Model.ServiceId == s.ServiceId;
+                        <label class="wizard-card @(isSelected ? "wizard-card--selected" : "")">
+                            <input type="radio" name="ServiceId" value="@s.ServiceId" checked="@isSelected" onchange="this.form.submit()" />
+                            <div class="wizard-card__icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                </svg>
+                            </div>
+                            <div class="wizard-card__info">
+                                <div class="wizard-card__title">@s.Name</div>
+                                <div class="wizard-card__meta">@s.DurationMinutes мин</div>
+                                <div class="wizard-card__price">@s.Price.ToString("0") ₽</div>
+                            </div>
+                            @if (isSelected)
+                            {
+                                <div class="wizard-card__check">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </div>
+                            }
+                        </label>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Step 3: Date & Master -->
+        @if (Model.BranchId.HasValue && Model.ServiceId.HasValue)
+        {
+            <div class="booking-section">
+                <h2 class="booking-section__title">
+                    <span class="booking-section__number">3</span>
+                    Выберите дату и мастера
+                </h2>
+                <div class="booking-filters">
+                    <div class="form-group">
+                        <label for="Date">Дата</label>
+                        <input type="date" id="Date" name="Date" class="input" value="@dateValue" min="@minDate" onchange="this.form.submit()" />
+                    </div>
+                    <div class="form-group">
+                        <label for="MasterId">Мастер</label>
+                        <select id="MasterId" name="MasterId" class="input" onchange="this.form.submit()">
+                            <option value="">Любой свободный</option>
+                            @foreach (var m in Model.Masters)
+                            {
+                                <option value="@m.MasterId" selected="@(Model.MasterId == m.MasterId)">@m.FullName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        }
+    </form>
+
+    <!-- Step 4: Time Slots -->
+    @if (Model.BranchId.HasValue && Model.ServiceId.HasValue)
+    {
+        <div class="booking-section">
+            <h2 class="booking-section__title">
+                <span class="booking-section__number">4</span>
+                Выберите удобное время
+            </h2>
+            @if (!Model.Slots.Any())
+            {
+                <div class="booking-empty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <p>Свободных слотов нет на выбранную дату</p>
+                    <p class="muted">Попробуйте другую дату или выберите другого мастера</p>
+                </div>
+            }
+            else
+            {
+                var slotsByMaster = Model.Slots
+                    .GroupBy(s => new { s.MasterId, s.MasterName })
+                    .OrderBy(g => g.Key.MasterName)
+                    .ToList();
+                <form method="post" asp-page-handler="Confirm" data-busy>
+                    <input type="hidden" name="Confirm.BranchId" value="@Model.BranchId" />
+                    <input type="hidden" name="Confirm.ServiceId" value="@Model.ServiceId" />
+                    <input type="hidden" name="Confirm.MasterId" id="ConfirmMasterId" value="0" />
+                    
+                    <div class="slot-grid">
+                        @foreach (var group in slotsByMaster)
+                        {
+                            <div class="slot-master">
+                                <div class="slot-master__header">
+                                    <div class="slot-master__avatar">@(group.Key.MasterName.Length > 0 ? group.Key.MasterName[0] : '?')</div>
+                                    <div class="slot-master__name">@group.Key.MasterName</div>
+                                </div>
+                                <div class="slot-master__slots">
+                                    @foreach (var slot in group.OrderBy(s => s.StartDateTime))
+                                    {
+                                        var iso = slot.StartDateTime.ToString("yyyy-MM-ddTHH:mm:ss");
+                                        var label = slot.StartDateTime.ToString("HH:mm");
+                                        <label class="slot-time">
+                                            <input type="radio" name="Confirm.Slot" value="@iso" data-master="@slot.MasterId" required />
+                                            <span>@label</span>
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="booking-actions">
+                        <button type="submit" class="btn btn--primary btn--large">Подтвердить запись</button>
+                        <a asp-page="/Account/Bookings/Index" class="btn btn--outline">Мои записи</a>
+                    </div>
+                </form>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/form-busy.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('change', function(e) {
+            if (e.target.matches('input[name="Confirm.Slot"]')) {
+                var mid = e.target.getAttribute('data-master');
+                var hidden = document.getElementById('ConfirmMasterId');
+                if (hidden) hidden.value = mid || '0';
+            }
+        });
+    </script>
+}

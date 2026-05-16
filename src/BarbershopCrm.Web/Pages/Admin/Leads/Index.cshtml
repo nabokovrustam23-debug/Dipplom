@@ -1,0 +1,305 @@
+@page "/Admin/Leads"
+@using BarbershopCrm.Domain.Enums
+@model BarbershopCrm.Web.Pages.Admin.Leads.IndexModel
+@{
+    ViewData["Title"] = "Заявки";
+    ViewData["ManagementTab"] = "leads";
+    var countNew = Model.Items.Count(l => l.Status == LeadStatus.New);
+    var countProg = Model.Items.Count(l => l.Status == LeadStatus.InProgress);
+    var countDone = Model.Items.Count(l => l.Status == LeadStatus.Done);
+    var countRej = Model.Items.Count(l => l.Status == LeadStatus.Rejected);
+}
+
+<partial name="_ManagementTabs" />
+
+<section class="management-section">
+    <div class="leads-management-header">
+        <div class="leads-management-header__content">
+            <h2>Заявки клиентов</h2>
+            <p class="leads-management-header__subtitle">Обработка входящих заявок и конвертация в записи</p>
+            <p class="leads-workflow-hint muted">
+                Сначала возьмите заявку в работу, затем создайте запись или закройте заявку без записи. Отклонение — если заявка неактуальна.
+            </p>
+        </div>
+        <div class="leads-stats">
+            <div class="leads-stat-card leads-stat-card--new">
+                <div class="leads-stat-card__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                    </svg>
+                </div>
+                <div class="leads-stat-card__content">
+                    <span class="leads-stat-card__value">@countNew</span>
+                    <span class="leads-stat-card__label">Новые</span>
+                </div>
+            </div>
+            <div class="leads-stat-card leads-stat-card--progress">
+                <div class="leads-stat-card__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <div class="leads-stat-card__content">
+                    <span class="leads-stat-card__value">@countProg</span>
+                    <span class="leads-stat-card__label">В работе</span>
+                </div>
+            </div>
+            <div class="leads-stat-card leads-stat-card--done">
+                <div class="leads-stat-card__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <div class="leads-stat-card__content">
+                    <span class="leads-stat-card__value">@countDone</span>
+                    <span class="leads-stat-card__label">Закрыто (готово)</span>
+                </div>
+            </div>
+            <div class="leads-stat-card leads-stat-card--rejected">
+                <div class="leads-stat-card__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                </div>
+                <div class="leads-stat-card__content">
+                    <span class="leads-stat-card__value">@countRej</span>
+                    <span class="leads-stat-card__label">Отклонено</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="leads-filters-card">
+        <div class="leads-filter-chips" role="tablist" aria-label="Быстрый фильтр по статусу">
+            <a class="leads-filter-chip @(string.IsNullOrEmpty(Model.Status) ? "leads-filter-chip--active" : "")" asp-page="/Admin/Leads/Index">Все</a>
+            <a class="leads-filter-chip @(Model.Status == LeadStatus.New ? "leads-filter-chip--active" : "")" asp-page="/Admin/Leads/Index" asp-route-status="@LeadStatus.New">Новые</a>
+            <a class="leads-filter-chip @(Model.Status == LeadStatus.InProgress ? "leads-filter-chip--active" : "")" asp-page="/Admin/Leads/Index" asp-route-status="@LeadStatus.InProgress">В работе</a>
+            <a class="leads-filter-chip @(Model.Status == LeadStatus.Done ? "leads-filter-chip--active" : "")" asp-page="/Admin/Leads/Index" asp-route-status="@LeadStatus.Done">Готово</a>
+            <a class="leads-filter-chip @(Model.Status == LeadStatus.Rejected ? "leads-filter-chip--active" : "")" asp-page="/Admin/Leads/Index" asp-route-status="@LeadStatus.Rejected">Отклонена</a>
+        </div>
+        <form method="get" class="leads-filters">
+            <div class="filter-group">
+                <label for="Status">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    Статус заявки
+                </label>
+                <select id="Status" name="Status" class="input input--filter" onchange="this.form.submit()">
+                    <option value="">Все статусы</option>
+                    @foreach (var s in Model.StatusOptions)
+                    {
+                        <option value="@s" selected="@(Model.Status == s)">@StatusLabels.LeadStatus(s)</option>
+                    }
+                </select>
+            </div>
+        </form>
+        <p class="leads-filters-note muted">Счётчики выше — по текущей выборке (до 200 заявок в списке).</p>
+    </div>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="empty-state">
+            <svg class="empty-state__icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <h3 class="empty-state__title">Заявок нет</h3>
+            <p class="empty-state__text">Новые заявки от клиентов будут отображаться здесь</p>
+        </div>
+    }
+    else
+    {
+        <div class="leads-grid">
+            @foreach (var l in Model.Items)
+            {
+                var p1Done = l.Status != LeadStatus.New;
+                var p1Active = l.Status == LeadStatus.New;
+                var p2Active = l.Status == LeadStatus.InProgress;
+                var p2Done = l.Status == LeadStatus.Done;
+                var p2Skipped = l.Status == LeadStatus.Rejected;
+                var p3Active = l.Status == LeadStatus.Done || l.Status == LeadStatus.Rejected;
+                var outcomeLabel = l.Status == LeadStatus.Rejected
+                    ? "Отклонена"
+                    : (l.CreatedBookingId.HasValue ? "Запись создана" : "Без записи");
+
+                <article class="lead-card lead-card--@l.Status.ToLowerInvariant()">
+                    <div class="lead-card__status-indicator"></div>
+
+                    <div class="lead-card__header">
+                        <div class="lead-card__header-main">
+                            <div class="lead-pipeline" aria-label="Этапы обработки заявки">
+                                <div class="lead-pipeline__step @(p1Done ? "lead-pipeline__step--done" : null) @(p1Active ? "lead-pipeline__step--active" : null) @(p1Done || p1Active ? null : "lead-pipeline__step--pending")">
+                                    <span class="lead-pipeline__dot">1</span>
+                                    <span class="lead-pipeline__label">Новая</span>
+                                </div>
+                                <div class="lead-pipeline__line @(p1Done ? "lead-pipeline__line--done" : "")"></div>
+                                <div class="lead-pipeline__step @(p2Skipped ? "lead-pipeline__step--skipped" : null) @(p2Done ? "lead-pipeline__step--done" : null) @(p2Active ? "lead-pipeline__step--active" : null) @(p2Done || p2Active || p2Skipped ? null : "lead-pipeline__step--pending")">
+                                    <span class="lead-pipeline__dot">@(p2Skipped ? "—" : "2")</span>
+                                    <span class="lead-pipeline__label">В работе</span>
+                                </div>
+                                <div class="lead-pipeline__line @(p2Done || p2Skipped ? "lead-pipeline__line--done" : "")"></div>
+                                <div class="lead-pipeline__step @(p3Active ? "lead-pipeline__step--active lead-pipeline__step--outcome" : "lead-pipeline__step--pending")">
+                                    <span class="lead-pipeline__dot">3</span>
+                                    <span class="lead-pipeline__label">Итог</span>
+                                    @if (p3Active)
+                                    {
+                                        <span class="lead-pipeline__outcome">@outcomeLabel</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lead-card__timestamp">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            @l.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                        </div>
+                    </div>
+
+                    <div class="lead-card__body">
+                        <div class="lead-card__client">
+                            <div class="lead-card__avatar">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <div class="lead-card__client-info">
+                                <span class="lead-card__client-name">@l.RawName</span>
+                                <a href="tel:@l.RawPhone.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "")" class="lead-card__client-phone">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                    </svg>
+                                    @l.RawPhone
+                                </a>
+                            </div>
+                        </div>
+
+                        @if (l.PreferredBranch != null)
+                        {
+                            <div class="lead-card__info-row">
+                                <div class="lead-card__info-icon">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                </div>
+                                <div class="lead-card__info-content">
+                                    <span class="lead-card__info-label">Предпочитаемый филиал</span>
+                                    <span class="lead-card__info-value">@l.PreferredBranch.Name</span>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(l.Comment))
+                        {
+                            <div class="lead-card__comment">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                <span>@l.Comment</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="lead-card__actions">
+                        @if (l.Status == LeadStatus.Done || l.Status == LeadStatus.Rejected)
+                        {
+                            <div class="lead-card__closed-summary">
+                                <p class="lead-card__closed-text muted">Заявка закрыта. В системе: <strong>@StatusLabels.LeadStatus(l.Status)</strong></p>
+                                @if (l.CreatedBookingId.HasValue && l.Status == LeadStatus.Done)
+                                {
+                                    <a class="lead-action-btn lead-action-btn--secondary" asp-page="/Admin/Bookings/Index" asp-route-bookingId="@l.CreatedBookingId.Value" asp-fragment="@($"booking-{l.CreatedBookingId.Value}")">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                                        </svg>
+                                        Открыть запись №@l.CreatedBookingId.Value
+                                    </a>
+                                }
+                            </div>
+                        }
+                        else if (l.Status == LeadStatus.New)
+                        {
+                            <div class="lead-card__workflow">
+                                <span class="lead-card__actions-title">Дальше</span>
+                                <form method="post" asp-page-handler="Take" asp-route-id="@l.LeadId" data-busy>
+                                    <button class="lead-action-btn lead-action-btn--primary" type="submit">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="9 11 12 14 22 4"></polyline>
+                                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                                        </svg>
+                                        Взять в работу
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="lead-card__close-actions">
+                                <span class="lead-card__actions-title lead-card__actions-title--danger">Закрыть заявку</span>
+                                <form method="post" asp-page-handler="Reject" asp-route-id="@l.LeadId" data-busy onsubmit="return confirm('Отклонить заявку? Клиент не будет записан.')">
+                                    <button class="lead-action-btn lead-action-btn--danger" type="submit">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                                        </svg>
+                                        Отклонить
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                        else if (l.Status == LeadStatus.InProgress)
+                        {
+                            <div class="lead-card__workflow">
+                                <span class="lead-card__actions-title">Дальше</span>
+                                <a class="lead-action-btn lead-action-btn--primary" asp-page="/Admin/Bookings/New" asp-route-leadId="@l.LeadId">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                    Создать запись
+                                </a>
+                            </div>
+                            <div class="lead-card__close-actions">
+                                <span class="lead-card__actions-title">Закрыть без записи</span>
+                                <form method="post" asp-page-handler="Done" asp-route-id="@l.LeadId" data-busy onsubmit="return confirm('Закрыть заявку без создания записи? Используйте, если вопрос решён по телефону или клиент отказался.')">
+                                    <button class="lead-action-btn lead-action-btn--success" type="submit">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                        Закрыть без записи
+                                    </button>
+                                </form>
+                                <form method="post" asp-page-handler="Reject" asp-route-id="@l.LeadId" data-busy onsubmit="return confirm('Отклонить заявку?')">
+                                    <button class="lead-action-btn lead-action-btn--danger lead-action-btn--outline" type="submit">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                                        </svg>
+                                        Отклонить
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/form-busy.js" asp-append-version="true"></script>
+}

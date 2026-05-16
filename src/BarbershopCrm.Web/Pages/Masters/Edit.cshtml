@@ -1,0 +1,198 @@
+@page "{id:int}"
+@model BarbershopCrm.Web.Pages.Masters.EditModel
+@{
+    ViewData["Title"] = $"Редактирование мастера — {Model.MasterName}";
+    ViewData["ManagementTab"] = "masters";
+    var isOwner = Model.Current?.RoleCode == RoleCode.Owner;
+}
+
+<partial name="_ManagementTabs" />
+
+<section class="management-section">
+    <nav class="breadcrumbs" aria-label="Хлебные крошки">
+        <a asp-page="Manage">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Мастера
+        </a>
+        <span class="breadcrumbs__sep">›</span>
+        <span>Редактирование</span>
+    </nav>
+
+    <div class="management-header management-header--compact">
+        <div class="management-header__content">
+            <h2>Редактирование мастера</h2>
+            <p class="management-header__subtitle">@Model.MasterName</p>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <form method="post" asp-route-id="@Model.MasterId" class="form-layout" data-busy>
+            <div asp-validation-summary="ModelOnly" class="alert alert--error"></div>
+
+            <div class="form-section">
+                <div class="form-section__header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <h3>Личные данные</h3>
+                </div>
+                <div class="form-section__content">
+                    <div class="form-row form-row--3">
+                        <div class="form-group">
+                            <label asp-for="Input.LastName">Фамилия <span class="required">*</span></label>
+                            <input asp-for="Input.LastName" required class="input" />
+                            <span asp-validation-for="Input.LastName" class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Input.FirstName">Имя <span class="required">*</span></label>
+                            <input asp-for="Input.FirstName" required class="input" />
+                            <span asp-validation-for="Input.FirstName" class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Input.MiddleName">Отчество</label>
+                            <input asp-for="Input.MiddleName" class="input" />
+                            <span asp-validation-for="Input.MiddleName" class="field-error"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section__header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    <h3>Контактная информация</h3>
+                </div>
+                <div class="form-section__content">
+                    <div class="form-row form-row--2">
+                        <div class="form-group">
+                            <label asp-for="Input.Phone">Телефон <span class="required">*</span></label>
+                            <div class="input-with-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                </svg>
+                                <input asp-for="Input.Phone" type="tel" required class="input input--with-icon" placeholder="+7 (918) 000-11-22" />
+                            </div>
+                            <span asp-validation-for="Input.Phone" class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Input.Email">Email</label>
+                            <div class="input-with-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                                <input asp-for="Input.Email" type="email" class="input input--with-icon" />
+                            </div>
+                            <span asp-validation-for="Input.Email" class="field-error"></span>
+                        </div>
+                    </div>
+                    @if (isOwner)
+                    {
+                        <div class="form-group">
+                            <label asp-for="Input.BranchId">Филиал <span class="required">*</span></label>
+                            <select asp-for="Input.BranchId" class="input" required>
+                                @foreach (var b in Model.Branches)
+                                {
+                                    <option value="@b.BranchId">@b.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Input.BranchId" class="field-error"></span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section__header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <h3>Дополнительная информация</h3>
+                </div>
+                <div class="form-section__content">
+                    <div class="form-group">
+                        <label asp-for="Input.Bio">Биография / о мастере</label>
+                        <textarea asp-for="Input.Bio" class="input" rows="4" placeholder="Опыт работы, специализация, достижения, увлечения..."></textarea>
+                        <span asp-validation-for="Input.Bio" class="field-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-switch">
+                            <input asp-for="Input.IsActive" type="checkbox" />
+                            <span class="checkbox-switch__slider"></span>
+                            <span class="checkbox-switch__label">Мастер активен и доступен для записи</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section__header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                        <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                    </svg>
+                    <h3>Привязка услуг <span class="required">*</span></h3>
+                </div>
+                <div class="form-section__content">
+                    <p class="form-section__hint">Отметьте услуги, которые выполняет этот мастер. Необходимо выбрать минимум одну услугу.</p>
+                    <div class="services-grid">
+                        @foreach (var service in Model.AllServices)
+                        {
+                            var isChecked = Model.Input.SelectedServiceIds.Contains(service.ServiceId);
+                            <label class="service-checkbox @(isChecked ? "service-checkbox--checked" : "")">
+                                <input type="checkbox"
+                                       name="Input.SelectedServiceIds"
+                                       value="@service.ServiceId"
+                                       @(isChecked ? "checked" : "")
+                                       class="service-checkbox__input" />
+                                <div class="service-checkbox__content">
+                                    <div class="service-checkbox__check">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div class="service-checkbox__info">
+                                        <span class="service-checkbox__name">@service.Name</span>
+                                        <span class="service-checkbox__meta">@service.DurationMinutes мин · @service.Price.ToString("0") ₽</span>
+                                    </div>
+                                </div>
+                            </label>
+                        }
+                    </div>
+                    <span asp-validation-for="Input.SelectedServiceIds" class="field-error"></span>
+                </div>
+            </div>
+
+            <div class="form-actions form-actions--sticky">
+                <button type="submit" class="btn btn--primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Сохранить изменения
+                </button>
+                <a asp-page="Manage" class="btn btn--outline">Отмена</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/form-busy.js" asp-append-version="true"></script>
+    <script>
+        // Toggle service checkbox visual state
+        document.querySelectorAll('.service-checkbox__input').forEach(input => {
+            input.addEventListener('change', function() {
+                this.closest('.service-checkbox').classList.toggle('service-checkbox--checked', this.checked);
+            });
+        });
+    </script>
+}

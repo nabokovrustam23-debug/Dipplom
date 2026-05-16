@@ -1,0 +1,281 @@
+@page "/Owner/Analytics/Clients"
+@model BarbershopCrm.Web.Pages.Owner.Analytics.ClientsModel
+@{
+    ViewData["Title"] = "Аналитика клиентов";
+    ViewData["ManagementTab"] = "analytics";
+}
+
+<partial name="_ManagementTabs" />
+
+<section class="card">
+    <div class="card__header">
+        <h1>Аналитика клиентов — @(Model.Snapshot?.BranchName ?? "вся сеть")</h1>
+        <div class="card__header-actions">
+            <a asp-page="/Owner/Analytics/Index"
+               asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
+               asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
+               asp-route-branchid="@Model.BranchId"
+               class="btn btn--outline">← Общая аналитика</a>
+        </div>
+    </div>
+
+    <form method="get" class="form-row" id="clientsFilterForm">
+        <div class="form-group">
+            <label for="BranchId">Филиал</label>
+            <select id="BranchId" name="BranchId" class="input">
+                <option value="">Вся сеть</option>
+                @foreach (var b in Model.BranchOptions)
+                {
+                    <option value="@b.Value" selected="@(Model.BranchId?.ToString() == b.Value)">@b.Text</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="From">С</label>
+            <input id="From" name="From" type="date" class="input" value="@Model.FromValue.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="form-group">
+            <label for="To">По</label>
+            <input id="To" name="To" type="date" class="input" value="@Model.ToValue.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn--primary">Применить</button>
+            <a asp-page="/Owner/Analytics/Clients" class="btn btn--outline">Сбросить</a>
+        </div>
+    </form>
+</section>
+
+@if (Model.Snapshot is not null)
+{
+    <section class="card export-card">
+        <div class="export-card__body">
+            <div class="export-card__icon" aria-hidden="true">⇩</div>
+            <div class="export-card__text">
+                <h2 class="export-card__title">Экспорт клиентов в CSV</h2>
+                <p class="export-card__desc">
+                    Полный список клиентов с аналитикой
+                    @(Model.Snapshot.BranchName is { Length: > 0 } b ? $"филиала «{b}»" : "по всей сети")
+                    за период
+                    <strong>@Model.FromValue.ToString("dd.MM.yyyy") — @Model.ToValue.ToString("dd.MM.yyyy")</strong>:
+                    визиты, выручка, ABC-категория, уровень лояльности.
+                </p>
+            </div>
+            <a asp-page="/Owner/Analytics/Clients" asp-page-handler="Export"
+               asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
+               asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
+               asp-route-branchid="@Model.BranchId"
+               class="btn btn--primary export-card__btn">Скачать .csv</a>
+        </div>
+    </section>
+
+    <!-- Сводка по сегментации -->
+    <section class="card">
+        <div class="card__header">
+            <h2>Сводка по клиентам</h2>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-card__label">Всего клиентов</div>
+                <div class="stat-card__value">@Model.Snapshot.TotalClients</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABC-анализ -->
+    <section class="card">
+        <div class="card__header">
+            <h2>ABC-анализ клиентов</h2>
+            <p class="muted">Распределение клиентов по вкладу в выручку</p>
+        </div>
+        <div class="abc-grid">
+            <div class="abc-card abc-card--a">
+                <div class="abc-card__header">
+                    <span class="abc-card__badge">A</span>
+                    <span class="abc-card__title">Топ-клиенты</span>
+                </div>
+                <div class="abc-card__stats">
+                    <div class="abc-stat">
+                        <span class="abc-stat__label">Клиентов</span>
+                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryACount</span>
+                    </div>
+                    <div class="abc-stat">
+                        <span class="abc-stat__label">Выручка</span>
+                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryARevenue.ToString("N0") ₽</span>
+                    </div>
+                    <div class="abc-stat abc-stat--highlight">
+                        <span class="abc-stat__label">Доля выручки</span>
+                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryARevenuePercent.ToString("0.0")%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="abc-card abc-card--b">
+                <div class="abc-card__header">
+                    <span class="abc-card__badge">B</span>
+                    <span class="abc-card__title">Средние клиенты</span>
+                </div>
+                <div class="abc-card__stats">
+                    <div class="abc-stat">
+                        <span class="abc-stat__label">Клиентов</span>
+                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryBCount</span>
+                    </div>
+                    <div class="abc-stat">
+                        <span class="abc-stat__label">Выручка</span>
+                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryBRevenue.ToString("N0") ₽</span>
+                    </div>
+                    <div class="abc-stat abc-stat--highlight">
+                        <span class="abc-stat__label">Доля выручки</span>
+                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryBRevenuePercent.ToString("0.0")%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="abc-card abc-card--c">
+                <div class="abc-card__header">
+                    <span class="abc-card__badge">C</span>
+                    <span class="abc-card__title">Остальные клиенты</span>
+                </div>
+                <div class="abc-card__stats">
+                    <div class="abc-stat">
+                        <span class="abc-stat__label">Клиентов</span>
+                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryCCount</span>
+                    </div>
+                    <div class="abc-stat">
+                        <span class="abc-stat__label">Выручка</span>
+                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryCRevenue.ToString("N0") ₽</span>
+                    </div>
+                    <div class="abc-stat abc-stat--highlight">
+                        <span class="abc-stat__label">Доля выручки</span>
+                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryCRevenuePercent.ToString("0.0")%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Распределение по уровням -->
+    <section class="card">
+        <div class="card__header">
+            <h2>Распределение по уровням лояльности</h2>
+            <p class="muted">Сегментация клиентов по количеству визитов</p>
+        </div>
+        <div class="tier-grid">
+            <div class="tier-card tier-card--new">
+                <div class="tier-card__icon">🆕</div>
+                <div class="tier-card__title">Новые</div>
+                <div class="tier-card__count">@Model.Snapshot.TierDistribution.NewCount</div>
+                <div class="tier-card__desc">1 визит</div>
+            </div>
+            <div class="tier-card tier-card--regular">
+                <div class="tier-card__icon">👤</div>
+                <div class="tier-card__title">Постоянные</div>
+                <div class="tier-card__count">@Model.Snapshot.TierDistribution.RegularCount</div>
+                <div class="tier-card__desc">2-5 визитов</div>
+            </div>
+            <div class="tier-card tier-card--loyal">
+                <div class="tier-card__icon">⭐</div>
+                <div class="tier-card__title">Лояльные</div>
+                <div class="tier-card__count">@Model.Snapshot.TierDistribution.LoyalCount</div>
+                <div class="tier-card__desc">6-10 визитов</div>
+            </div>
+            <div class="tier-card tier-card--vip">
+                <div class="tier-card__icon">👑</div>
+                <div class="tier-card__title">VIP</div>
+                <div class="tier-card__count">@Model.Snapshot.TierDistribution.VipCount</div>
+                <div class="tier-card__desc">11+ визитов</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Топ-20 клиентов -->
+    <section class="card">
+        <div class="card__header">
+            <h2>Топ-20 клиентов по выручке</h2>
+        </div>
+        @if (Model.Snapshot.TopClients.Any())
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ABC</th>
+                            <th>Уровень</th>
+                            <th>Клиент</th>
+                            <th>Контакты</th>
+                            <th class="text-right">Визитов</th>
+                            <th class="text-right">Выручка</th>
+                            <th class="text-right">Средний чек</th>
+                            <th>Последний визит</th>
+                            <th>Предпочтения</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var client in Model.Snapshot.TopClients)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="badge badge--@(client.AbcCategory.ToString().ToLower())">
+                                        @client.AbcCategory
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge--tier-@(client.Tier.ToString().ToLower())">
+                                        @switch (client.Tier)
+                                        {
+                                            case BarbershopCrm.Infrastructure.Analytics.ClientTier.New:
+                                                @:Новый
+                                                break;
+                                            case BarbershopCrm.Infrastructure.Analytics.ClientTier.Regular:
+                                                @:Постоянный
+                                                break;
+                                            case BarbershopCrm.Infrastructure.Analytics.ClientTier.Loyal:
+                                                @:Лояльный
+                                                break;
+                                            case BarbershopCrm.Infrastructure.Analytics.ClientTier.VIP:
+                                                @:VIP
+                                                break;
+                                        }
+                                    </span>
+                                </td>
+                                <td><strong>@client.ClientName</strong></td>
+                                <td class="text-muted small">
+                                    @if (!string.IsNullOrEmpty(client.Phone))
+                                    {
+                                        <div>📞 @client.Phone</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(client.Email))
+                                    {
+                                        <div>✉️ @client.Email</div>
+                                    }
+                                </td>
+                                <td class="text-right">@client.TotalVisits</td>
+                                <td class="text-right"><strong>@client.TotalRevenue.ToString("N0") ₽</strong></td>
+                                <td class="text-right">@client.AverageTicket.ToString("N0") ₽</td>
+                                <td>
+                                    <div>@client.LastVisitDate.ToString("dd.MM.yyyy")</div>
+                                    <div class="text-muted small">@client.DaysSinceLastVisit дн. назад</div>
+                                </td>
+                                <td class="text-muted small">
+                                    @if (!string.IsNullOrEmpty(client.PreferredMaster))
+                                    {
+                                        <div>👨‍💼 @client.PreferredMaster</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(client.PreferredService))
+                                    {
+                                        <div>✂️ @client.PreferredService</div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="muted">Нет данных о клиентах за выбранный период.</p>
+        }
+    </section>
+}
+
+<!-- Made with Bob -->

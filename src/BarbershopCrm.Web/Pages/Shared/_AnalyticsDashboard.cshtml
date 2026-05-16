@@ -1,0 +1,278 @@
+@using BarbershopCrm.Infrastructure.Analytics
+@using System.Globalization
+@model DashboardSnapshot
+@{
+    var ru = CultureInfo.GetCultureInfo("ru-RU");
+    var byStatus = Model.ByStatus;
+    var funnel = Model.SalesFunnel;
+    var statusBars = new (string Label, int Value, string Css, string Icon)[]
+    {
+        ("Создана",     byStatus.Created,   "status-created", "M12 5v14M5 12h14"),
+        ("Подтверждена",byStatus.Confirmed, "status-confirmed", "M20 6L9 17l-5-5"),
+        ("Завершена",   byStatus.Completed, "status-completed", "M22 11.08V12a10 10 0 1 1-5.93-9.14"),
+        ("Отменена",    byStatus.Cancelled, "status-cancelled", "M18 6L6 18M6 6l12 12"),
+        ("Не пришёл",   byStatus.NoShow,    "status-noshow", "M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"),
+    };
+    var maxStatus = Math.Max(1, statusBars.Max(x => x.Value));
+    var maxUtil = Math.Max(1m, Model.Utilization.Count == 0 ? 1m : Model.Utilization.Max(u => u.UtilizationPercent));
+    string Money(decimal v) => v.ToString("#,##0.00", ru) + " ₽";
+    string Percent(decimal v) => v.ToString("0.0", ru) + " %";
+    var funnelLeadConv = funnel.LeadsSubmittedInPeriod <= 0
+        ? "—"
+        : Percent((decimal)funnel.BookingsFromLeadsInPeriod / funnel.LeadsSubmittedInPeriod * 100m);
+    var funnelCompleteConv = funnel.BookingsFromLeadsInPeriod <= 0
+        ? "—"
+        : Percent((decimal)funnel.CompletedBookingsFromLeadsInPeriod / funnel.BookingsFromLeadsInPeriod * 100m);
+}
+
+<section class="sales-funnel" aria-labelledby="sales-funnel-title">
+    <div class="sales-funnel__header">
+        <h3 id="sales-funnel-title">Воронка: заявки → записи из заявок → завершено</h3>
+        <p class="sales-funnel__hint">
+            Заявки считаются по дате создания; записи с источником «Из заявки» — по дате создания записи; завершённые — записи из заявок со статусом «Завершена» за выбранный период.
+        </p>
+    </div>
+    <div class="sales-funnel__steps">
+        <div class="sales-funnel__step">
+            <span class="sales-funnel__step-value">@funnel.LeadsSubmittedInPeriod</span>
+            <span class="sales-funnel__step-label">Заявок (вход)</span>
+        </div>
+        <div class="sales-funnel__arrow" aria-hidden="true">→</div>
+        <div class="sales-funnel__step">
+            <span class="sales-funnel__step-value">@funnel.BookingsFromLeadsInPeriod</span>
+            <span class="sales-funnel__step-label">Записей из заявок · конверсия @funnelLeadConv</span>
+        </div>
+        <div class="sales-funnel__arrow" aria-hidden="true">→</div>
+        <div class="sales-funnel__step">
+            <span class="sales-funnel__step-value">@funnel.CompletedBookingsFromLeadsInPeriod</span>
+            <span class="sales-funnel__step-label">Завершено из этих записей · @funnelCompleteConv</span>
+        </div>
+    </div>
+</section>
+
+<div class="kpi-grid">
+    <div class="kpi-card kpi-card--primary">
+        <div class="kpi-card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+        </div>
+        <div class="kpi-card__content">
+            <span class="kpi-card__label">Всего записей</span>
+            <span class="kpi-card__value">@Model.TotalBookings</span>
+            <span class="kpi-card__hint">@Model.From.ToString("dd.MM") — @Model.To.ToString("dd.MM.yyyy")</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-card--success">
+        <div class="kpi-card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+        </div>
+        <div class="kpi-card__content">
+            <span class="kpi-card__label">Выручка</span>
+            <span class="kpi-card__value">@Money(Model.Revenue)</span>
+            <span class="kpi-card__hint">по завершённым визитам</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-card--info">
+        <div class="kpi-card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+            </svg>
+        </div>
+        <div class="kpi-card__content">
+            <span class="kpi-card__label">Средний чек</span>
+            <span class="kpi-card__value">@Money(Model.AverageTicket)</span>
+            <span class="kpi-card__hint">@Model.CompletedVisits визитов</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-card--accent">
+        <div class="kpi-card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+        </div>
+        <div class="kpi-card__content">
+            <span class="kpi-card__label">Повторные клиенты</span>
+            <span class="kpi-card__value">@Percent(Model.RepeatClientsRate * 100m)</span>
+            <span class="kpi-card__hint">@Model.RepeatClients из @Model.ClientsWithAtLeastOneCompletedVisit</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-card--warning">
+        <div class="kpi-card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+        </div>
+        <div class="kpi-card__content">
+            <span class="kpi-card__label">Отмены</span>
+            <span class="kpi-card__value">@byStatus.Cancelled</span>
+            <span class="kpi-card__hint">за период</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-card--error">
+        <div class="kpi-card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+            </svg>
+        </div>
+        <div class="kpi-card__content">
+            <span class="kpi-card__label">No-show</span>
+            <span class="kpi-card__value">@byStatus.NoShow</span>
+            <span class="kpi-card__hint">не пришли</span>
+        </div>
+    </div>
+</div>
+
+<div class="analytics-charts">
+    <section class="chart-card">
+        <div class="chart-card__header">
+            <h3>Распределение по статусам</h3>
+            <span class="chart-card__total">Всего: @byStatus.Total</span>
+        </div>
+        @if (byStatus.Total == 0)
+        {
+            <div class="chart-card__empty">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <p>За выбранный период записей нет</p>
+            </div>
+        }
+        else
+        {
+            <div class="status-bars">
+                @foreach (var bar in statusBars)
+                {
+                    var pct = (decimal)bar.Value / maxStatus * 100m;
+                    var valuePct = byStatus.Total > 0 ? (decimal)bar.Value / byStatus.Total * 100m : 0m;
+                    <div class="status-bar">
+                        <div class="status-bar__header">
+                            <div class="status-bar__label">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="@bar.Icon"></path>
+                                </svg>
+                                <span>@bar.Label</span>
+                            </div>
+                            <div class="status-bar__stats">
+                                <span class="status-bar__value">@bar.Value</span>
+                                <span class="status-bar__percent">@Percent(valuePct)</span>
+                            </div>
+                        </div>
+                        <div class="status-bar__track">
+                            <div class="status-bar__fill status-bar__fill--@bar.Css" style="width: @pct.ToString("0.0", CultureInfo.InvariantCulture)%"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="chart-card">
+        <div class="chart-card__header">
+            <h3>Загрузка мастеров</h3>
+        </div>
+        @if (Model.Utilization.Count == 0)
+        {
+            <div class="chart-card__empty">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <p>Нет данных по загрузке за период</p>
+            </div>
+        }
+        else
+        {
+            <div class="utilization-list">
+                @foreach (var u in Model.Utilization)
+                {
+                    var pct = u.UtilizationPercent;
+                    var rel = (decimal)pct / maxUtil * 100m;
+                    <div class="utilization-item">
+                        <div class="utilization-item__header">
+                            <div class="utilization-item__master">
+                                <div class="utilization-item__avatar">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <span class="utilization-item__name">@u.MasterName</span>
+                            </div>
+                            <span class="utilization-item__percent">@Percent(pct)</span>
+                        </div>
+                        <div class="utilization-item__bar">
+                            <div class="utilization-item__fill" style="width: @rel.ToString("0.0", CultureInfo.InvariantCulture)%"></div>
+                        </div>
+                        <div class="utilization-item__stats">
+                            <span>Занято: <strong>@u.BookedMinutes мин</strong></span>
+                            <span>Запланировано: <strong>@u.WorkMinutes мин</strong></span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+<section class="chart-card chart-card--full">
+    <div class="chart-card__header">
+        <h3>Топ услуг</h3>
+    </div>
+    @if (Model.TopServices.Count == 0)
+    {
+        <div class="chart-card__empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+            </svg>
+            <p>За выбранный период нет данных</p>
+        </div>
+    }
+    else
+    {
+        <div class="services-table">
+            @foreach (var t in Model.TopServices)
+            {
+                <div class="service-row">
+                    <div class="service-row__icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                        </svg>
+                    </div>
+                    <div class="service-row__name">@t.ServiceName</div>
+                    <div class="service-row__count">
+                        <span class="service-row__label">Записей</span>
+                        <span class="service-row__value">@t.Count</span>
+                    </div>
+                    <div class="service-row__revenue">
+                        <span class="service-row__label">Выручка</span>
+                        <span class="service-row__value">@Money(t.Revenue)</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>

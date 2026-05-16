@@ -1,0 +1,116 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Главная";
+}
+
+<section class="hero hero--home">
+    <div class="hero__inner">
+        <p class="hero__eyebrow">Премиальный барбершоп · Краснодар</p>
+        <h1 class="hero__title">Тихий час</h1>
+        <p class="hero__lead">Место, где классика встречается с современностью. Профессиональные мастера, удобная онлайн-запись и безупречный сервис для тех, кто ценит качество.</p>
+        <div class="hero__cta">
+            @if (Model.IsAuthenticated && Model.Current?.RoleCode == RoleCode.Client)
+            {
+                <a class="btn btn--soft" asp-page="/BookingFlow/New">Записаться онлайн</a>
+            }
+            else
+            {
+                <a class="btn btn--soft" asp-page="/Lead/Index">Оставить заявку</a>
+            }
+            <a class="btn btn--ghost" asp-page="/Services/Index">Прайс-лист</a>
+            @if (!Model.IsAuthenticated)
+            {
+                <a class="btn btn--ghost" asp-page="/Account/Login">Войти в кабинет</a>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <article class="feature">
+        <div class="feature__icon" aria-hidden="true">⏱</div>
+        <h3>Запись за минуту</h3>
+        <p class="muted">Выбираете услугу, мастера и удобный слот. Подтверждение приходит на email и в личный кабинет.</p>
+    </article>
+    <article class="feature">
+        <div class="feature__icon" aria-hidden="true">✂</div>
+        <h3>Опытные мастера</h3>
+        <p class="muted">Команда профессиональных барберов с многолетним стажем — классические стрижки, бритьё, оформление бороды.</p>
+    </article>
+    <article class="feature">
+        <div class="feature__icon" aria-hidden="true">⚑</div>
+        <h3>Удобное расположение</h3>
+        <p class="muted">Несколько филиалов в разных районах города. Единый прайс, одинаковое качество обслуживания.</p>
+    </article>
+</section>
+
+<div class="divider"></div>
+
+<header class="section-header">
+    <h2>Филиалы</h2>
+    <a class="link-more" asp-page="/Branches/Index">Все филиалы →</a>
+</header>
+
+<div class="grid-3" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: var(--space-4);">
+    @foreach (var branch in Model.Branches)
+    {
+        <article class="card branch-card">
+            @if (!string.IsNullOrEmpty(branch.ImageUrl))
+            {
+                <img class="image-thumb branch-card__image" src="@branch.ImageUrl" alt="" loading="lazy" />
+            }
+            else
+            {
+                <div class="image-thumb image-placeholder branch-card__image" aria-hidden="true">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </div>
+            }
+            <h3><a asp-page="/Branches/Details" asp-route-id="@branch.BranchId">@branch.Name</a></h3>
+            <p class="muted">@branch.Address</p>
+            <p class="faint tnum">@branch.OpeningTime.ToString("HH:mm") – @branch.ClosingTime.ToString("HH:mm")</p>
+            @if (!string.IsNullOrWhiteSpace(branch.Phone))
+            {
+                <p class="muted tnum">@branch.Phone</p>
+            }
+        </article>
+    }
+</div>
+
+<div class="divider"></div>
+
+<header class="section-header">
+    <h2>Услуги</h2>
+    <a class="link-more" asp-page="/Services/Index">Весь прайс →</a>
+</header>
+
+<div class="grid-3" style="margin-top: var(--space-4);">
+    @foreach (var service in Model.Services.Take(6))
+    {
+        <article class="card service-card">
+            @if (!string.IsNullOrEmpty(service.ImageUrl))
+            {
+                <img class="image-thumb service-card__image" src="@service.ImageUrl" alt="" loading="lazy" />
+            }
+            else
+            {
+                <div class="image-thumb image-placeholder service-card__image" aria-hidden="true">
+                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                        <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                    </svg>
+                </div>
+            }
+            <h3>@service.Name</h3>
+            @if (!string.IsNullOrWhiteSpace(service.Description))
+            {
+                <p class="muted">@service.Description</p>
+            }
+            <p class="faint tnum">@service.DurationMinutes мин</p>
+            <div class="price tnum">@service.Price.ToString("0") ₽</div>
+        </article>
+    }
+</div>

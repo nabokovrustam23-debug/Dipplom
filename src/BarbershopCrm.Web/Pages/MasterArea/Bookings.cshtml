@@ -1,0 +1,83 @@
+@page "/Master/Bookings"
+@using BarbershopCrm.Domain.Enums
+@model BarbershopCrm.Web.Pages.MasterArea.BookingsModel
+@{
+    ViewData["Title"] = "Моё расписание";
+    var safeDate = Model.DateValue > DateOnly.MinValue ? Model.DateValue : DateOnly.FromDateTime(DateTime.Today);
+    var prevDay = safeDate.AddDays(-1).ToString("yyyy-MM-dd");
+    var nextDay = safeDate.AddDays(1).ToString("yyyy-MM-dd");
+    var today = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
+}
+
+<section class="management-section">
+    <div class="schedule-header">
+        <div class="schedule-header__content">
+            <h2>Моё расписание</h2>
+            <div class="schedule-header__meta">
+                @if (Model.Branch is not null)
+                {
+                    <span class="schedule-meta-chip">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        @Model.Branch.Name
+                    </span>
+                }
+                <span class="schedule-meta-chip schedule-meta-chip--date">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    @BarbershopCrm.Web.Pages.MasterArea.BookingsModel.FormatRussianDate(Model.DateValue)
+                </span>
+            </div>
+        </div>
+
+        <form method="get" class="schedule-toolbar" asp-page="/Master/Bookings">
+            <div class="schedule-toolbar__group schedule-toolbar__nav">
+                <button type="submit" name="Date" value="@prevDay" class="btn btn--icon" aria-label="Предыдущий день" title="Предыдущий день">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <button type="submit" name="Date" value="@today" class="btn btn--outline btn--compact">Сегодня</button>
+                <button type="submit" name="Date" value="@nextDay" class="btn btn--icon" aria-label="Следующий день" title="Следующий день">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+            <div class="schedule-toolbar__group">
+                <label class="visually-hidden" for="Date">Выбрать дату</label>
+                <input type="date" id="Date" name="Date" class="input input--compact input--date" value="@Model.DateValue.ToString("yyyy-MM-dd")" onchange="this.form.submit()" />
+            </div>
+        </form>
+    </div>
+
+    <div asp-validation-summary="All" class="alert alert--error"></div>
+
+    @if (TempData["Error"] is string errMsg)
+    {
+        <div class="alert alert--error">@errMsg</div>
+    }
+    @if (TempData["Success"] is string succMsg)
+    {
+        <div class="alert alert--success">@succMsg</div>
+    }
+
+    @if (Model.Self is null)
+    {
+        <p class="muted">Профиль мастера не настроен. Обратитесь к администратору.</p>
+    }
+    else if (Model.Agenda is not null)
+    {
+        <partial name="_ScheduleDayAgenda" model="Model.Agenda" />
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/form-busy.js" asp-append-version="true"></script>
+}

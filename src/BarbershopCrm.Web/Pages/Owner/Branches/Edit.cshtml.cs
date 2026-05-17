@@ -61,9 +61,11 @@ public class EditModel : AppPageModel
         if (!ModelState.IsValid)
             return Page();
 
+        string? oldImageUrl = branch.ImageUrl;
+        bool imageReplaced = false;
+
         if (Input.RemoveImage)
         {
-            _images.Delete(branch.ImageUrl);
             branch.ImageUrl = null;
         }
 
@@ -79,8 +81,8 @@ public class EditModel : AppPageModel
                 ModelState.AddModelError("Input.ImageFile", ex.Message);
                 return Page();
             }
-            _images.Delete(branch.ImageUrl);
             branch.ImageUrl = newUrl;
+            imageReplaced = true;
         }
 
         branch.Name = Input.Name.Trim();
@@ -93,6 +95,12 @@ public class EditModel : AppPageModel
         branch.IsActive = Input.IsActive;
 
         await _db.SaveChangesAsync(ct);
+
+        if (Input.RemoveImage || imageReplaced)
+        {
+            if (!string.IsNullOrEmpty(oldImageUrl))
+                _images.Delete(oldImageUrl);
+        }
 
         TempData["Success"] = $"Филиал «{branch.Name}» обновлён.";
         return RedirectToPage("Index");

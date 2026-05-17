@@ -402,66 +402,6 @@ namespace BarbershopCrm.Infrastructure.Migrations
                     b.ToTable("MasterService", (string)null);
                 });
 
-            modelBuilder.Entity("BarbershopCrm.Domain.Entities.Notification", b =>
-                {
-                    b.Property<int>("NotificationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Body")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Channel")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
-                        .HasDefaultValueSql("(datetime('now'))");
-
-                    b.Property<string>("Error")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("RecipientPersonaId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("RelatedBookingId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("SentAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
-                        .HasDefaultValue("Pending");
-
-                    b.Property<string>("Subject")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("NotificationId");
-
-                    b.HasIndex("RecipientPersonaId");
-
-                    b.HasIndex("RelatedBookingId");
-
-                    b.HasIndex("Status", "CreatedAt")
-                        .HasDatabaseName("IX_Notifications_Status_Created");
-
-                    b.ToTable("Notifications", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Notifications_Channel", "Channel IN ('Email','Sms','InApp')");
-
-                            t.HasCheckConstraint("CK_Notifications_Status", "Status IN ('Pending','Sent','Failed')");
-                        });
-                });
-
             modelBuilder.Entity("BarbershopCrm.Domain.Entities.Persona", b =>
                 {
                     b.Property<int>("PersonaId")
@@ -999,24 +939,6 @@ namespace BarbershopCrm.Infrastructure.Migrations
                     b.Navigation("Master");
 
                     b.Navigation("Service");
-                });
-
-            modelBuilder.Entity("BarbershopCrm.Domain.Entities.Notification", b =>
-                {
-                    b.HasOne("BarbershopCrm.Domain.Entities.Persona", "Recipient")
-                        .WithMany()
-                        .HasForeignKey("RecipientPersonaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BarbershopCrm.Domain.Entities.Booking", "RelatedBooking")
-                        .WithMany()
-                        .HasForeignKey("RelatedBookingId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Recipient");
-
-                    b.Navigation("RelatedBooking");
                 });
 
             modelBuilder.Entity("BarbershopCrm.Domain.Entities.User", b =>

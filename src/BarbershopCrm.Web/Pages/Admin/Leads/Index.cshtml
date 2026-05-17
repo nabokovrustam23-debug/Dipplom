@@ -74,30 +74,106 @@
 
     <div class="leads-filters-card">
         <div class="leads-filter-chips" role="tablist" aria-label="Быстрый фильтр по статусу">
-            <a class="leads-filter-chip @(string.IsNullOrEmpty(Model.Status) ? "leads-filter-chip--active" : "")" asp-page="/Admin/Leads/Index">Все</a>
-            <a class="leads-filter-chip @(Model.Status == LeadStatus.New ? "leads-filter-chip--active" : "")" asp-page="/Admin/Leads/Index" asp-route-status="@LeadStatus.New">Новые</a>
-            <a class="leads-filter-chip @(Model.Status == LeadStatus.InProgress ? "leads-filter-chip--active" : "")" asp-page="/Admin/Leads/Index" asp-route-status="@LeadStatus.InProgress">В работе</a>
-            <a class="leads-filter-chip @(Model.Status == LeadStatus.Done ? "leads-filter-chip--active" : "")" asp-page="/Admin/Leads/Index" asp-route-status="@LeadStatus.Done">Готово</a>
-            <a class="leads-filter-chip @(Model.Status == LeadStatus.Rejected ? "leads-filter-chip--active" : "")" asp-page="/Admin/Leads/Index" asp-route-status="@LeadStatus.Rejected">Отклонена</a>
+            <a class="leads-filter-chip @(string.IsNullOrEmpty(Model.Status) ? "leads-filter-chip--active" : "")"
+               asp-page="/Admin/Leads/Index" asp-all-route-data="@FilterRoute(null)">Все</a>
+            <a class="leads-filter-chip @(Model.Status == LeadStatus.New ? "leads-filter-chip--active" : "")"
+               asp-page="/Admin/Leads/Index" asp-all-route-data="@FilterRoute(LeadStatus.New)">Новые</a>
+            <a class="leads-filter-chip @(Model.Status == LeadStatus.InProgress ? "leads-filter-chip--active" : "")"
+               asp-page="/Admin/Leads/Index" asp-all-route-data="@FilterRoute(LeadStatus.InProgress)">В работе</a>
+            <a class="leads-filter-chip @(Model.Status == LeadStatus.Done ? "leads-filter-chip--active" : "")"
+               asp-page="/Admin/Leads/Index" asp-all-route-data="@FilterRoute(LeadStatus.Done)">Готово</a>
+            <a class="leads-filter-chip @(Model.Status == LeadStatus.Rejected ? "leads-filter-chip--active" : "")"
+               asp-page="/Admin/Leads/Index" asp-all-route-data="@FilterRoute(LeadStatus.Rejected)">Отклонена</a>
         </div>
+
         <form method="get" class="leads-filters">
-            <div class="filter-group">
-                <label for="Status">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            <div class="leads-filters__row">
+                <div class="leads-filters__search search-input-wrapper">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    Статус заявки
-                </label>
-                <select id="Status" name="Status" class="input input--filter" onchange="this.form.submit()">
-                    <option value="">Все статусы</option>
-                    @foreach (var s in Model.StatusOptions)
-                    {
-                        <option value="@s" selected="@(Model.Status == s)">@StatusLabels.LeadStatus(s)</option>
-                    }
-                </select>
+                    <input type="text" id="Search" name="Search" value="@Model.Search"
+                           class="input input--filter search-input" placeholder="Поиск по имени или телефону..." />
+                </div>
+
+                <div class="filter-group leads-filters__sort">
+                    <label for="SortBy">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                        Сортировка
+                    </label>
+                    <select id="SortBy" name="SortBy" class="input input--filter" onchange="this.form.submit()">
+                        <option value="created_desc" selected="@(Model.SortBy == "created_desc" || Model.SortBy == null)">Новые сначала</option>
+                        <option value="created_asc" selected="@(Model.SortBy == "created_asc")">Старые сначала</option>
+                        <option value="name_asc" selected="@(Model.SortBy == "name_asc")">По имени</option>
+                    </select>
+                </div>
             </div>
+
+            <div class="leads-filters__row">
+                <div class="filter-group">
+                    <label for="DateFrom">С</label>
+                    <input type="date" id="DateFrom" name="DateFrom" value="@Model.DateFrom?.ToString("yyyy-MM-dd")"
+                           class="input input--filter" />
+                </div>
+                <div class="filter-group">
+                    <label for="DateTo">По</label>
+                    <input type="date" id="DateTo" name="DateTo" value="@Model.DateTo?.ToString("yyyy-MM-dd")"
+                           class="input input--filter" />
+                </div>
+
+                <div class="filter-group">
+                    <label for="Status">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                        Статус
+                    </label>
+                    <select id="Status" name="Status" class="input input--filter" onchange="this.form.submit()">
+                        <option value="">Все статусы</option>
+                        @foreach (var s in Model.StatusOptions)
+                        {
+                            <option value="@s" selected="@(Model.Status == s)">@StatusLabels.LeadStatus(s)</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="leads-filters__actions">
+                    <button type="submit" class="btn btn--primary btn--sm btn--filter">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        Применить
+                    </button>
+                    <a class="btn btn--outline btn--sm btn--filter" asp-page="/Admin/Leads/Index">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Сбросить
+                    </a>
+                </div>
+            </div>
+            <input type="hidden" name="CurrentPage" value="@Model.CurrentPage" />
         </form>
-        <p class="leads-filters-note muted">Счётчики выше — по текущей выборке (до 200 заявок в списке).</p>
+    </div>
+
+    <div class="leads-result-info">
+        <p>
+            Найдено <strong>@Model.Items.Count</strong> из <strong>@Model.TotalCount</strong>
+            @if (Model.TotalPages > 1)
+            {
+                <span class="muted">— страница @Model.CurrentPage из @Model.TotalPages</span>
+            }
+        </p>
     </div>
 
     @if (!Model.Items.Any())
@@ -233,7 +309,7 @@
                         {
                             <div class="lead-card__workflow">
                                 <span class="lead-card__actions-title">Дальше</span>
-                                <form method="post" asp-page-handler="Take" asp-route-id="@l.LeadId" data-busy>
+                                <form method="post" asp-page-handler="Take" asp-route-id="@l.LeadId" asp-route-status="@Model.Status" asp-route-search="@Model.Search" asp-route-sortby="@Model.SortBy" asp-route-datefrom="@Model.DateFrom?.ToString("yyyy-MM-dd")" asp-route-dateto="@Model.DateTo?.ToString("yyyy-MM-dd")" asp-route-currentpage="@Model.CurrentPage" data-busy>
                                     <button class="lead-action-btn lead-action-btn--primary" type="submit">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="9 11 12 14 22 4"></polyline>
@@ -245,7 +321,7 @@
                             </div>
                             <div class="lead-card__close-actions">
                                 <span class="lead-card__actions-title lead-card__actions-title--danger">Закрыть заявку</span>
-                                <form method="post" asp-page-handler="Reject" asp-route-id="@l.LeadId" data-busy onsubmit="return confirm('Отклонить заявку? Клиент не будет записан.')">
+                                <form method="post" asp-page-handler="Reject" asp-route-id="@l.LeadId" asp-route-status="@Model.Status" asp-route-search="@Model.Search" asp-route-sortby="@Model.SortBy" asp-route-datefrom="@Model.DateFrom?.ToString("yyyy-MM-dd")" asp-route-dateto="@Model.DateTo?.ToString("yyyy-MM-dd")" asp-route-currentpage="@Model.CurrentPage" data-busy onsubmit="return confirm('Отклонить заявку? Клиент не будет записан.')">
                                     <button class="lead-action-btn lead-action-btn--danger" type="submit">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <circle cx="12" cy="12" r="10"></circle>
@@ -273,7 +349,7 @@
                             </div>
                             <div class="lead-card__close-actions">
                                 <span class="lead-card__actions-title">Закрыть без записи</span>
-                                <form method="post" asp-page-handler="Done" asp-route-id="@l.LeadId" data-busy onsubmit="return confirm('Закрыть заявку без создания записи? Используйте, если вопрос решён по телефону или клиент отказался.')">
+                                <form method="post" asp-page-handler="Done" asp-route-id="@l.LeadId" asp-route-status="@Model.Status" asp-route-search="@Model.Search" asp-route-sortby="@Model.SortBy" asp-route-datefrom="@Model.DateFrom?.ToString("yyyy-MM-dd")" asp-route-dateto="@Model.DateTo?.ToString("yyyy-MM-dd")" asp-route-currentpage="@Model.CurrentPage" data-busy onsubmit="return confirm('Закрыть заявку без создания записи? Используйте, если вопрос решён по телефону или клиент отказался.')">
                                     <button class="lead-action-btn lead-action-btn--success" type="submit">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="20 6 9 17 4 12"></polyline>
@@ -281,7 +357,7 @@
                                         Закрыть без записи
                                     </button>
                                 </form>
-                                <form method="post" asp-page-handler="Reject" asp-route-id="@l.LeadId" data-busy onsubmit="return confirm('Отклонить заявку?')">
+                                <form method="post" asp-page-handler="Reject" asp-route-id="@l.LeadId" asp-route-status="@Model.Status" asp-route-search="@Model.Search" asp-route-sortby="@Model.SortBy" asp-route-datefrom="@Model.DateFrom?.ToString("yyyy-MM-dd")" asp-route-dateto="@Model.DateTo?.ToString("yyyy-MM-dd")" asp-route-currentpage="@Model.CurrentPage" data-busy onsubmit="return confirm('Отклонить заявку?')">
                                     <button class="lead-action-btn lead-action-btn--danger lead-action-btn--outline" type="submit">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <circle cx="12" cy="12" r="10"></circle>
@@ -297,9 +373,85 @@
                 </article>
             }
         </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="leads-pagination" aria-label="Пагинация">
+                @{
+                    var routeData = new Dictionary<string, string?>
+                    {
+                        ["Status"] = Model.Status,
+                        ["Search"] = Model.Search,
+                        ["SortBy"] = Model.SortBy,
+                        ["DateFrom"] = Model.DateFrom?.ToString("yyyy-MM-dd"),
+                        ["DateTo"] = Model.DateTo?.ToString("yyyy-MM-dd"),
+                        ["CurrentPage"] = Model.CurrentPage.ToString(),
+                    };
+                }
+                @if (Model.CurrentPage > 1)
+                {
+                    <a class="btn btn--outline btn--sm" asp-page="/Admin/Leads/Index" asp-all-route-data="@routeData" asp-route-currentpage="@(Model.CurrentPage - 1)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        Назад
+                    </a>
+                }
+
+                @{
+                    var startPage = Math.Max(1, Model.CurrentPage - 2);
+                    var endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 2);
+                }
+                @if (startPage > 1)
+                {
+                    <a class="btn btn--outline btn--sm" asp-page="/Admin/Leads/Index" asp-all-route-data="@routeData" asp-route-currentpage="1">1</a>
+                    @if (startPage > 2)
+                    {
+                        <span class="leads-pagination__ellipsis">...</span>
+                    }
+                }
+                @for (var p = startPage; p <= endPage; p++)
+                {
+                    <a class="btn @(p == Model.CurrentPage ? "btn--primary" : "btn--outline") btn--sm" asp-page="/Admin/Leads/Index" asp-all-route-data="@routeData" asp-route-currentpage="@p">@p</a>
+                }
+                @if (endPage < Model.TotalPages)
+                {
+                    @if (endPage < Model.TotalPages - 1)
+                    {
+                        <span class="leads-pagination__ellipsis">...</span>
+                    }
+                    <a class="btn btn--outline btn--sm" asp-page="/Admin/Leads/Index" asp-all-route-data="@routeData" asp-route-currentpage="@Model.TotalPages">@Model.TotalPages</a>
+                }
+
+                @if (Model.CurrentPage < Model.TotalPages)
+                {
+                    <a class="btn btn--outline btn--sm" asp-page="/Admin/Leads/Index" asp-all-route-data="@routeData" asp-route-currentpage="@(Model.CurrentPage + 1)">
+                        Вперёд
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </a>
+                }
+            </nav>
+        }
     }
 </section>
 
 @section Scripts {
     <script src="~/js/form-busy.js" asp-append-version="true"></script>
+}
+
+@functions {
+    Dictionary<string, string?> FilterRoute(string? statusOverride)
+    {
+        return new Dictionary<string, string?>
+        {
+            ["Status"] = statusOverride,
+            ["Search"] = Model.Search,
+            ["SortBy"] = Model.SortBy,
+            ["DateFrom"] = Model.DateFrom?.ToString("yyyy-MM-dd"),
+            ["DateTo"] = Model.DateTo?.ToString("yyyy-MM-dd"),
+            ["CurrentPage"] = "1",
+        };
+    }
 }

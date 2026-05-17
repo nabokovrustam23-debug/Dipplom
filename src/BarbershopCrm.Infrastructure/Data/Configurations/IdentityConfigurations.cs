@@ -111,7 +111,7 @@ public sealed class UserTokenConfiguration : IEntityTypeConfiguration<UserToken>
     {
         b.ToTable("UserTokens", t =>
             t.HasCheckConstraint("CK_UserTokens_Purpose",
-                $"Purpose IN ('{UserTokenPurpose.EmailVerification}','{UserTokenPurpose.PasswordReset}')"));
+                $"Purpose IN ('{UserTokenPurpose.PasswordReset}')"));
 
         b.HasKey(x => x.TokenId);
         b.Property(x => x.Purpose).IsRequired();

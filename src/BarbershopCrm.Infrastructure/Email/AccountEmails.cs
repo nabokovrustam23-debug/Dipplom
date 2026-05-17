@@ -6,25 +6,6 @@ namespace BarbershopCrm.Infrastructure.Email;
 /// </summary>
 public static class AccountEmails
 {
-    public static EmailMessage EmailVerification(string to, string fullName, string link, int hoursValid)
-    {
-        var body = $$"""
-            Здравствуйте, {{fullName}}.
-
-            Мы получили запрос на регистрацию в CRM «Тихий час».
-            Чтобы подтвердить адрес почты, перейдите по ссылке:
-
-            {{link}}
-
-            Ссылка действительна {{hoursValid}} ч.
-
-            Если это не вы — просто проигнорируйте это письмо.
-
-            — «Тихий час», барбершопы Краснодара.
-            """;
-        return new EmailMessage(to, "Подтверждение адреса почты", body);
-    }
-
     public static EmailMessage PasswordReset(string to, string fullName, string link, int hoursValid)
     {
         var body = $$"""

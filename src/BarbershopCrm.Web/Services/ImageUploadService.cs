@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace BarbershopCrm.Web.Services;
 
 public interface IImageUploadService
@@ -35,8 +33,7 @@ public sealed class LocalImageUploadService : IImageUploadService
         if (file is null || file.Length == 0) return null;
 
         if (file.Length > MaxBytes)
-            throw new InvalidOperationException(
-                string.Create(CultureInfo.InvariantCulture, $"Файл слишком большой (>{MaxBytes / (1024 * 1024)} МБ)."));
+            throw new InvalidOperationException($"Файл слишком большой (>4 МБ).");
 
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!AllowedExtensions.Contains(ext))
@@ -48,14 +45,46 @@ public sealed class LocalImageUploadService : IImageUploadService
 
         var safeFolder = SanitizeFolder(folder);
         var fileName = $"{Guid.NewGuid():N}{ext}";
-        var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+        var contentRoot = _env.ContentRootPath ?? Directory.GetCurrentDirectory();
+        var webRoot = _env.WebRootPath ?? Path.Combine(contentRoot, "wwwroot");
         var dir = Path.Combine(webRoot, "uploads", safeFolder);
-        Directory.CreateDirectory(dir);
+
+        _logger.LogInformation("WebRootPath={WebRoot}, ContentRoot={Content}, dir={Dir}",
+            _env.WebRootPath, _env.ContentRootPath, dir);
+
+        // Validate the directory path is writable
+        try
+        {
+            Directory.CreateDirectory(dir);
+            _logger.LogInformation("Directory created/exists: {Dir}", dir);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to create directory {Dir}", dir);
+            throw new InvalidOperationException($"Не удалось создать папку для загрузки: {ex.Message}");
+        }
 
         var fullPath = Path.Combine(dir, fileName);
-        await using (var stream = File.Create(fullPath))
+        _logger.LogInformation("Full path: {Path}", fullPath);
+
+        try
         {
-            await file.CopyToAsync(stream, ct);
+            // Write to a memory stream first, then to disk
+            await using var ms = new MemoryStream();
+            await file.CopyToAsync(ms, ct);
+            _logger.LogInformation("File copied to memory: {Size} bytes", ms.Length);
+
+            ms.Position = 0;
+            await using (var fs = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+            {
+                await ms.CopyToAsync(fs, ct);
+            }
+            _logger.LogInformation("File written to disk: {Path}", fullPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to write file {Path}", fullPath);
+            throw new InvalidOperationException($"Не удалось сохранить файл: {ex.Message}");
         }
 
         return $"/uploads/{safeFolder}/{fileName}";
@@ -68,7 +97,8 @@ public sealed class LocalImageUploadService : IImageUploadService
 
         try
         {
-            var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+            var contentRoot = _env.ContentRootPath ?? Directory.GetCurrentDirectory();
+            var webRoot = _env.WebRootPath ?? Path.Combine(contentRoot, "wwwroot");
             var fullPath = Path.Combine(webRoot, relativeUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
             if (File.Exists(fullPath))
                 File.Delete(fullPath);

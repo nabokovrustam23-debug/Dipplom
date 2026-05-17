@@ -56,9 +56,11 @@ public class EditModel : AppPageModel
         if (!ModelState.IsValid)
             return Page();
 
+        // Сохраняем старый URL для последующего удаления
+        string? oldImageUrl = service.ImageUrl;
+
         if (Input.RemoveImage)
         {
-            _images.Delete(service.ImageUrl);
             service.ImageUrl = null;
         }
 
@@ -74,7 +76,6 @@ public class EditModel : AppPageModel
                 ModelState.AddModelError("Input.ImageFile", ex.Message);
                 return Page();
             }
-            _images.Delete(service.ImageUrl);
             service.ImageUrl = newUrl;
         }
 
@@ -85,6 +86,12 @@ public class EditModel : AppPageModel
         service.IsActive = Input.IsActive;
 
         await _db.SaveChangesAsync(ct);
+
+        // Удаляем старое изображение только после успешного сохранения в БД
+        if (service.ImageUrl != oldImageUrl && !string.IsNullOrEmpty(oldImageUrl))
+        {
+            _images.Delete(oldImageUrl);
+        }
 
         TempData["Success"] = $"Услуга «{service.Name}» обновлена.";
         return RedirectToPage("Index");

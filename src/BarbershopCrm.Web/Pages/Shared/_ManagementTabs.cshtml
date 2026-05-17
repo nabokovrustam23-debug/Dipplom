@@ -11,6 +11,11 @@
     <div class="manage-tabs__list" role="tablist">
         @if (isOwner)
         {
+            <a class="manage-tabs__tab @(currentTab == "users" ? "is-active" : "")"
+               role="tab" aria-selected="@(currentTab == "users" ? "true" : "false")"
+               asp-page="/Owner/Users/Index">
+                Пользователи
+            </a>
             <a class="manage-tabs__tab @(currentTab == "branches" ? "is-active" : "")"
                role="tab" aria-selected="@(currentTab == "branches" ? "true" : "false")"
                asp-page="/Owner/Branches/Index">

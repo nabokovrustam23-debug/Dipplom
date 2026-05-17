@@ -7,21 +7,55 @@
 
 <partial name="_ManagementTabs" />
 
-<section class="card">
-    <div class="card__header">
-        <h1>Аналитика клиентов — @(Model.Snapshot?.BranchName ?? "вся сеть")</h1>
-        <div class="card__header-actions">
-            <a asp-page="/Owner/Analytics/Index"
-               asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
-               asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
-               asp-route-branchid="@Model.BranchId"
-               class="btn btn--outline">← Общая аналитика</a>
+<!-- Улучшенный заголовок с иконкой -->
+<section class="management-header">
+    <div class="management-header__content">
+        <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2);">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(184, 153, 104, 0.15), rgba(184, 153, 104, 0.05)); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B89968" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+            </div>
+            <div>
+                <h2 style="margin: 0;">Аналитика клиентов</h2>
+                <p class="management-header__subtitle" style="margin: 0;">@(Model.Snapshot?.BranchName ?? "Вся сеть")</p>
+            </div>
         </div>
     </div>
+    <div class="management-header__actions">
+        <a asp-page="/Owner/Analytics/Index"
+           asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
+           asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
+           asp-route-branchid="@Model.BranchId"
+           class="btn btn--outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Общая аналитика
+        </a>
+    </div>
+</section>
 
-    <form method="get" class="form-row" id="clientsFilterForm">
-        <div class="form-group">
-            <label for="BranchId">Филиал</label>
+<!-- Улучшенные фильтры -->
+<section class="analytics-filters-card">
+    <div class="analytics-filters-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+        <h3>Фильтры</h3>
+    </div>
+    <form method="get" class="analytics-filters" id="clientsFilterForm">
+        <div class="filter-group">
+            <label for="BranchId">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                </svg>
+                Филиал
+            </label>
             <select id="BranchId" name="BranchId" class="input">
                 <option value="">Вся сеть</option>
                 @foreach (var b in Model.BranchOptions)
@@ -30,62 +64,145 @@
                 }
             </select>
         </div>
-        <div class="form-group">
-            <label for="From">С</label>
+        <div class="filter-group">
+            <label for="From">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Период с
+            </label>
             <input id="From" name="From" type="date" class="input" value="@Model.FromValue.ToString("yyyy-MM-dd")" />
         </div>
-        <div class="form-group">
-            <label for="To">По</label>
+        <div class="filter-group">
+            <label for="To">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Период по
+            </label>
             <input id="To" name="To" type="date" class="input" value="@Model.ToValue.ToString("yyyy-MM-dd")" />
         </div>
-        <div class="form-actions">
-            <button type="submit" class="btn btn--primary">Применить</button>
-            <a asp-page="/Owner/Analytics/Clients" class="btn btn--outline">Сбросить</a>
+        <div class="filter-actions">
+            <button type="submit" class="btn btn--primary btn--filter">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Применить
+            </button>
+            <a asp-page="/Owner/Analytics/Clients" class="btn btn--outline btn--filter">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <polyline points="23 20 23 14 17 14"></polyline>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                </svg>
+                Сбросить
+            </a>
         </div>
     </form>
 </section>
 
 @if (Model.Snapshot is not null)
 {
-    <section class="card export-card">
-        <div class="export-card__body">
-            <div class="export-card__icon" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
-            <div class="export-card__text">
-                <h2 class="export-card__title">Экспорт клиентов в CSV</h2>
-                <p class="export-card__desc">
-                    Полный список клиентов с аналитикой
-                    @(Model.Snapshot.BranchName is { Length: > 0 } b ? $"филиала «{b}»" : "по всей сети")
-                    за период
-                    <strong>@Model.FromValue.ToString("dd.MM.yyyy") — @Model.ToValue.ToString("dd.MM.yyyy")</strong>:
-                    визиты, выручка, ABC-категория, уровень лояльности.
-                </p>
-            </div>
-            <a asp-page="/Owner/Analytics/Clients" asp-page-handler="Export"
-               asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
-               asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
-               asp-route-branchid="@Model.BranchId"
-               class="btn btn--primary export-card__btn">Скачать .csv</a>
+    <!-- Экспорт с улучшенным дизайном -->
+    <section class="export-card-modern">
+        <div class="export-card-modern__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
         </div>
+        <div class="export-card-modern__content">
+            <h3 class="export-card-modern__title">Экспорт данных клиентов</h3>
+            <p class="export-card-modern__desc">
+                Полный список клиентов с аналитикой
+                @(Model.Snapshot.BranchName is { Length: > 0 } b ? $"филиала «{b}»" : "по всей сети")
+                за период
+                <strong>@Model.FromValue.ToString("dd.MM.yyyy") — @Model.ToValue.ToString("dd.MM.yyyy")</strong>
+            </p>
+            <div class="export-card-modern__features">
+                <span class="export-feature">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    ABC-категории
+                </span>
+                <span class="export-feature">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Уровни лояльности
+                </span>
+                <span class="export-feature">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    История визитов
+                </span>
+            </div>
+        </div>
+        <a asp-page="/Owner/Analytics/Clients" asp-page-handler="Export"
+           asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
+           asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
+           asp-route-branchid="@Model.BranchId"
+           class="btn btn--primary export-card-modern__btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Скачать CSV
+        </a>
     </section>
 
-    <!-- Сводка по сегментации -->
-    <section class="card">
-        <div class="card__header">
+    <!-- Сводка по сегментации с улучшенным дизайном -->
+    <section class="clients-summary-card">
+        <div class="clients-summary-card__header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
             <h2>Сводка по клиентам</h2>
         </div>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-card__label">Всего клиентов</div>
-                <div class="stat-card__value">@Model.Snapshot.TotalClients</div>
+        <div class="clients-summary-grid">
+            <div class="summary-stat">
+                <div class="summary-stat__icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <div class="summary-stat__content">
+                    <div class="summary-stat__label">Всего клиентов</div>
+                    <div class="summary-stat__value">@Model.Snapshot.TotalClients</div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- ABC-анализ -->
-    <section class="card">
-        <div class="card__header">
-            <h2>ABC-анализ клиентов</h2>
-            <p class="muted">Распределение клиентов по вкладу в выручку</p>
+    <!-- ABC-анализ с улучшенным дизайном -->
+    <section class="abc-analysis-section">
+        <div class="abc-analysis-header">
+            <div class="abc-analysis-header__icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+            </div>
+            <div>
+                <h2>ABC-анализ клиентов</h2>
+                <p class="muted">Распределение клиентов по вкладу в выручку</p>
+            </div>
         </div>
         <div class="abc-grid">
             <div class="abc-card abc-card--a">
@@ -105,6 +222,11 @@
                     <div class="abc-stat abc-stat--highlight">
                         <span class="abc-stat__label">Доля выручки</span>
                         <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryARevenuePercent.ToString("0.0")%</span>
+                    </div>
+                </div>
+                <div class="abc-card__progress">
+                    <div class="abc-progress-bar">
+                        <div class="abc-progress-fill abc-progress-fill--a" style="width: @Model.Snapshot.AbcDistribution.CategoryARevenuePercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
                     </div>
                 </div>
             </div>
@@ -128,6 +250,11 @@
                         <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryBRevenuePercent.ToString("0.0")%</span>
                     </div>
                 </div>
+                <div class="abc-card__progress">
+                    <div class="abc-progress-bar">
+                        <div class="abc-progress-fill abc-progress-fill--b" style="width: @Model.Snapshot.AbcDistribution.CategoryBRevenuePercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="abc-card abc-card--c">
@@ -147,6 +274,11 @@
                     <div class="abc-stat abc-stat--highlight">
                         <span class="abc-stat__label">Доля выручки</span>
                         <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryCRevenuePercent.ToString("0.0")%</span>
+                    </div>
+                </div>
+                <div class="abc-card__progress">
+                    <div class="abc-progress-bar">
+                        <div class="abc-progress-fill abc-progress-fill--c" style="width: @Model.Snapshot.AbcDistribution.CategoryCRevenuePercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
                     </div>
                 </div>
             </div>
@@ -187,15 +319,22 @@
         </div>
     </section>
 
-    <!-- Топ-20 клиентов -->
-    <section class="card">
-        <div class="card__header">
+    <!-- Топ-20 клиентов с улучшенным дизайном -->
+    <section class="clients-table-section">
+        <div class="clients-table-header">
+            <div class="clients-table-header__icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <polyline points="17 11 19 13 23 9"></polyline>
+                </svg>
+            </div>
             <h2>Топ-20 клиентов по выручке</h2>
         </div>
         @if (Model.Snapshot.TopClients.Any())
         {
-            <div class="table-responsive">
-                <table class="table">
+            <div class="table-wrapper">
+                <table class="clients-table">
                     <thead>
                         <tr>
                             <th>ABC</th>
@@ -212,14 +351,14 @@
                     <tbody>
                         @foreach (var client in Model.Snapshot.TopClients)
                         {
-                            <tr>
+                            <tr class="clients-table__row">
                                 <td>
-                                    <span class="badge badge--@(client.AbcCategory.ToString().ToLower())">
+                                    <span class="badge-modern badge-modern--@(client.AbcCategory.ToString().ToLower())">
                                         @client.AbcCategory
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="badge badge--tier-@(client.Tier.ToString().ToLower())">
+                                    <span class="badge-modern badge-modern--tier-@(client.Tier.ToString().ToLower())">
                                         @switch (client.Tier)
                                         {
                                             case BarbershopCrm.Infrastructure.Analytics.ClientTier.New:
@@ -237,32 +376,75 @@
                                         }
                                     </span>
                                 </td>
-                                <td><strong>@client.ClientName</strong></td>
-                                <td class="text-muted small">
+                                <td>
+                                    <div class="client-name">
+                                        <div class="client-avatar">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                            </svg>
+                                        </div>
+                                        <strong>@client.ClientName</strong>
+                                    </div>
+                                </td>
+                                <td class="client-contacts">
                                     @if (!string.IsNullOrEmpty(client.Phone))
                                     {
-                                        <div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> @client.Phone</div>
+                                        <div class="contact-item">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                            </svg>
+                                            @client.Phone
+                                        </div>
                                     }
                                     @if (!string.IsNullOrEmpty(client.Email))
                                     {
-                                        <div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> @client.Email</div>
+                                        <div class="contact-item">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                                <polyline points="22,6 12,13 2,6"/>
+                                            </svg>
+                                            @client.Email
+                                        </div>
                                     }
                                 </td>
-                                <td class="text-right">@client.TotalVisits</td>
-                                <td class="text-right"><strong>@client.TotalRevenue.ToString("N0") ₽</strong></td>
-                                <td class="text-right">@client.AverageTicket.ToString("N0") ₽</td>
-                                <td>
-                                    <div>@client.LastVisitDate.ToString("dd.MM.yyyy")</div>
-                                    <div class="text-muted small">@client.DaysSinceLastVisit дн. назад</div>
+                                <td class="text-right">
+                                    <span class="stat-number">@client.TotalVisits</span>
                                 </td>
-                                <td class="text-muted small">
+                                <td class="text-right">
+                                    <strong class="revenue-value">@client.TotalRevenue.ToString("N0") ₽</strong>
+                                </td>
+                                <td class="text-right">
+                                    <span class="stat-number">@client.AverageTicket.ToString("N0") ₽</span>
+                                </td>
+                                <td>
+                                    <div class="visit-info">
+                                        <div class="visit-date">@client.LastVisitDate.ToString("dd.MM.yyyy")</div>
+                                        <div class="visit-ago">@client.DaysSinceLastVisit дн. назад</div>
+                                    </div>
+                                </td>
+                                <td class="client-preferences">
                                     @if (!string.IsNullOrEmpty(client.PreferredMaster))
                                     {
-                                        <div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> @client.PreferredMaster</div>
+                                        <div class="preference-item">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                                <circle cx="12" cy="7" r="4"/>
+                                            </svg>
+                                            @client.PreferredMaster
+                                        </div>
                                     }
                                     @if (!string.IsNullOrEmpty(client.PreferredService))
                                     {
-                                        <div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M20.94 11h-2.08A5.98 5.98 0 0 0 14 6.14V4h-4v2.14A5.98 5.98 0 0 0 5.14 11H3.06a.5.5 0 0 0-.5.54A9 9 0 0 0 12 20a9 9 0 0 0 9.38-8.46.5.5 0 0 0-.44-.54z"/><circle cx="12" cy="15" r="2"/><line x1="4" y1="14" x2="3" y2="14"/><line x1="21" y1="14" x2="20" y2="14"/></svg> @client.PreferredService</div>
+                                        <div class="preference-item">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20.94 11h-2.08A5.98 5.98 0 0 0 14 6.14V4h-4v2.14A5.98 5.98 0 0 0 5.14 11H3.06a.5.5 0 0 0-.5.54A9 9 0 0 0 12 20a9 9 0 0 0 9.38-8.46.5.5 0 0 0-.44-.54z"/>
+                                                <circle cx="12" cy="15" r="2"/>
+                                                <line x1="4" y1="14" x2="3" y2="14"/>
+                                                <line x1="21" y1="14" x2="20" y2="14"/>
+                                            </svg>
+                                            @client.PreferredService
+                                        </div>
                                     }
                                 </td>
                             </tr>
@@ -273,7 +455,14 @@
         }
         else
         {
-            <p class="muted">Нет данных о клиентах за выбранный период.</p>
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <p>Нет данных о клиентах за выбранный период</p>
+            </div>
         }
     </section>
 }

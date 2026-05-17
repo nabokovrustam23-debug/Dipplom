@@ -23,19 +23,6 @@ public interface IUserAuthService
         string sessionToken,
         CancellationToken cancellationToken = default);
 
-    Task<ConsumeTokenResult> ConfirmEmailAsync(
-        string token,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Re-issues an email verification token for an existing unconfirmed user.
-    /// Returns null if the email is unknown or already confirmed (anti-enumeration: caller
-    /// should still report success to the user).
-    /// </summary>
-    Task<string?> IssueEmailVerificationTokenAsync(
-        string email,
-        CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Generates a password reset token for the user with the given email.
     /// Returns null if the email is unknown (anti-enumeration: caller should still report

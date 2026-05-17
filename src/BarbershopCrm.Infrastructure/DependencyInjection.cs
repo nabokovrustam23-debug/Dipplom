@@ -3,7 +3,6 @@ using BarbershopCrm.Infrastructure.Auth;
 using BarbershopCrm.Infrastructure.Data;
 using BarbershopCrm.Infrastructure.Email;
 using BarbershopCrm.Infrastructure.Loyalty;
-using BarbershopCrm.Infrastructure.Notifications;
 using BarbershopCrm.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -36,15 +35,11 @@ public static class DependencyInjection
         services.AddOptions<EmailOptions>()
             .Bind(configuration.GetSection(EmailOptions.SectionName));
 
-        services.AddOptions<NotificationOptions>()
-            .Bind(configuration.GetSection(NotificationOptions.SectionName));
-
         services.AddOptions<LoyaltyOptions>()
             .Bind(configuration.GetSection("Loyalty"));
 
         services.AddScoped<IUserAuthService, UserAuthService>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
-        services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ILoyaltyService, LoyaltyService>();
         services.AddScoped<ILoyaltyDiscountResolver, LoyaltyDiscountResolver>();
 
@@ -59,17 +54,6 @@ public static class DependencyInjection
             services.AddSingleton<IEmailSender, LogEmailSender>();
         }
 
-        return services;
-    }
-
-    /// <summary>
-    /// Registers the notification dispatcher and reminder job hosted services.
-    /// Tests skip this method to keep background work out of the test harness.
-    /// </summary>
-    public static IServiceCollection AddNotificationBackground(this IServiceCollection services)
-    {
-        services.AddHostedService<NotificationDispatcher>();
-        services.AddHostedService<BookingReminderJob>();
         return services;
     }
 }

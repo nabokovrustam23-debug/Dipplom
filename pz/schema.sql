@@ -156,19 +156,6 @@ CREATE TABLE "WorkSchedules" (
 );
 
 
-CREATE TABLE "AuditLog" (
-    "AuditId" INTEGER NOT NULL CONSTRAINT "PK_AuditLog" PRIMARY KEY AUTOINCREMENT,
-    "UserId" INTEGER NULL,
-    "Action" TEXT NOT NULL,
-    "EntityType" TEXT NOT NULL,
-    "EntityId" INTEGER NULL,
-    "Details" TEXT NULL,
-    "CreatedAt" TEXT NOT NULL DEFAULT ((datetime('now'))),
-    "IpAddress" TEXT NULL,
-    CONSTRAINT "FK_AuditLog_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("UserId") ON DELETE SET NULL
-);
-
-
 CREATE TABLE "UserSessions" (
     "SessionId" INTEGER NOT NULL CONSTRAINT "PK_UserSessions" PRIMARY KEY AUTOINCREMENT,
     "UserId" INTEGER NOT NULL,
@@ -273,12 +260,6 @@ INSERT INTO "Services" ("ServiceId", "Description", "DurationMinutes", "ImageUrl
 VALUES (5, 'Тонирование седины в бороде.', 30, NULL, 1, 'Камуфляж бороды', '900.0');
 SELECT changes();
 
-
-
-CREATE INDEX "IX_AuditLog_Created" ON "AuditLog" ("CreatedAt");
-
-
-CREATE INDEX "IX_AuditLog_UserId" ON "AuditLog" ("UserId");
 
 
 CREATE INDEX "IX_Bookings_Branch_Start" ON "Bookings" ("BranchId", "StartDateTime");

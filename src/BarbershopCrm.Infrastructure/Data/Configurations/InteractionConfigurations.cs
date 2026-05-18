@@ -65,21 +65,4 @@ public sealed class ConsentLogConfiguration : IEntityTypeConfiguration<ConsentLo
     }
 }
 
-public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLogEntry>
-{
-    public void Configure(EntityTypeBuilder<AuditLogEntry> b)
-    {
-        b.ToTable("AuditLog");
-        b.HasKey(x => x.AuditId);
-        b.Property(x => x.Action).IsRequired();
-        b.Property(x => x.EntityType).IsRequired();
-        b.Property(x => x.CreatedAt).HasDefaultValueSql("(datetime('now'))");
 
-        b.HasIndex(x => x.CreatedAt).HasDatabaseName("IX_AuditLog_Created");
-
-        b.HasOne(x => x.User)
-            .WithMany()
-            .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.SetNull);
-    }
-}

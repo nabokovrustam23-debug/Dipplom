@@ -65,7 +65,7 @@ public class EditModel : AppPageModel
         {
             // Сначала сохраняем новое изображение, только потом удаляем старое
             string? oldImageUrl = branch.ImageUrl;
-            
+
             if (Input.RemoveImage)
             {
                 branch.ImageUrl = null;

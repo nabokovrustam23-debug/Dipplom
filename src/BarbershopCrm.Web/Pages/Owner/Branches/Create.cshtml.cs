@@ -35,36 +35,35 @@ public class CreateModel : AppPageModel
         if (!ModelState.IsValid)
             return Page();
 
-        var branch = new Branch
+        try
         {
-            Name = Input.Name.Trim(),
-            Address = Input.Address.Trim(),
-            Latitude = Input.Latitude,
-            Longitude = Input.Longitude,
-            Phone = string.IsNullOrWhiteSpace(Input.Phone) ? null : Input.Phone.Trim(),
-            OpeningTime = TimeOnly.Parse(Input.OpeningTime),
-            ClosingTime = TimeOnly.Parse(Input.ClosingTime),
-            IsActive = Input.IsActive
-        };
-
-        if (Input.ImageFile is { Length: > 0 })
-        {
-            try
+            var branch = new Branch
             {
+                Name = Input.Name.Trim(),
+                Address = Input.Address.Trim(),
+                Latitude = Input.Latitude,
+                Longitude = Input.Longitude,
+                Phone = string.IsNullOrWhiteSpace(Input.Phone) ? null : Input.Phone.Trim(),
+                OpeningTime = TimeOnly.TryParse(Input.OpeningTime, out var openTime) ? openTime : TimeOnly.MinValue,
+                ClosingTime = TimeOnly.TryParse(Input.ClosingTime, out var closeTime) ? closeTime : TimeOnly.MinValue,
+                IsActive = Input.IsActive
+            };
+
+            if (Input.ImageFile is { Length: > 0 })
                 branch.ImageUrl = await _images.SaveAsync(Input.ImageFile, "branches", ct);
-            }
-            catch (InvalidOperationException ex)
-            {
-                ModelState.AddModelError("Input.ImageFile", ex.Message);
-                return Page();
-            }
+
+            _db.Branches.Add(branch);
+            await _db.SaveChangesAsync(ct);
+
+            TempData["Success"] = $"Филиал «{branch.Name}» успешно создан.";
+            return RedirectToPage("Index");
         }
-
-        _db.Branches.Add(branch);
-        await _db.SaveChangesAsync(ct);
-
-        TempData["Success"] = $"Филиал «{branch.Name}» успешно создан.";
-        return RedirectToPage("Index");
+        catch (Exception ex)
+        {
+            var msg = ex.InnerException?.Message ?? ex.Message;
+            ModelState.AddModelError(string.Empty, $"Ошибка: {msg}");
+            return Page();
+        }
     }
 
     public class BranchCreateInput

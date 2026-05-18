@@ -2,7 +2,6 @@ using BarbershopCrm.Domain.Entities;
 using BarbershopCrm.Domain.Enums;
 using BarbershopCrm.Infrastructure.Auth;
 using BarbershopCrm.Infrastructure.Data;
-using BarbershopCrm.Infrastructure.Notifications;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,12 +15,10 @@ public class IndexModel : AppPageModel
 {
     private static readonly Regex PhoneRegex = new(@"^\+?[78][\s\-\(\)]*(\d[\s\-\(\)]*){10}$", RegexOptions.Compiled);
     private readonly AppDbContext _db;
-    private readonly INotificationService _notifications;
 
-    public IndexModel(ICurrentUserAccessor cu, AppDbContext db, INotificationService notifications) : base(cu)
+    public IndexModel(ICurrentUserAccessor cu, AppDbContext db) : base(cu)
     {
         _db = db;
-        _notifications = notifications;
     }
 
     [BindProperty] public InputModel Input { get; set; } = new();
@@ -48,6 +45,9 @@ public class IndexModel : AppPageModel
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
+        var employeeRedirect = RedirectIfEmployee();
+        if (employeeRedirect is not null) return employeeRedirect;
+
         await LoadAsync(ct);
 
         if (IsAuthenticated && Current is not null)
@@ -65,6 +65,9 @@ public class IndexModel : AppPageModel
 
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
+        var employeeRedirect = RedirectIfEmployee();
+        if (employeeRedirect is not null) return employeeRedirect;
+
         if (!PhoneRegex.IsMatch(Input.Phone ?? string.Empty))
             ModelState.AddModelError(nameof(Input.Phone), "Телефон должен содержать 10–11 цифр в формате +7 или 8.");
         if (!Input.ConsentGiven)
@@ -99,8 +102,6 @@ public class IndexModel : AppPageModel
         }
         await _db.SaveChangesAsync(ct);
 
-        await _notifications.OnLeadCreatedAsync(lead.LeadId, ct);
-
         TempData["Success"] = "Заявка принята. Мы свяжемся с вами в ближайшее время.";
         return RedirectToPage("/Lead/Thanks");
     }
@@ -120,5 +121,18 @@ public class IndexModel : AppPageModel
         if (digits.Length == 11 && digits.StartsWith("8")) digits = "7" + digits.Substring(1);
         if (digits.Length == 10) digits = "7" + digits;
         return "+" + digits;
+    }
+
+    private IActionResult? RedirectIfEmployee()
+    {
+        if (!IsAuthenticated) return null;
+        return Current?.RoleCode switch
+        {
+            null => null,
+            RoleCode.Master => RedirectToPage("/"),
+            RoleCode.Admin => RedirectToPage("/Admin/Leads/Index"),
+            RoleCode.Owner => RedirectToPage("/Owner/Analytics/Index"),
+            _ => null,
+        };
     }
 }

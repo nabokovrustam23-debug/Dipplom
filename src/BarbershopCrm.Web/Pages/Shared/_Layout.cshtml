@@ -1,16 +1,9 @@
 @inject ICurrentUserAccessor CurrentUserAccessor
 @{
-    var theme = Context.Request.Cookies["theme"];
-    if (theme != "light" && theme != "dark") theme = "dark";
-
-    var nextTheme = theme == "dark" ? "light" : "dark";
-    var nextThemeLabel = nextTheme == "dark" ? "Тёмная" : "Светлая";
-    var returnUrl = Context.Request.Path + Context.Request.QueryString;
-
     var current = CurrentUserAccessor.User;
 }
 <!DOCTYPE html>
-<html lang="ru" data-theme="@theme">
+<html lang="ru">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -28,7 +21,7 @@
         <header class="app-header">
             <div class="app-header__inner">
                 <a class="brand" asp-page="/Index">
-                    <img src="~/images/logo.png" alt="Тихий час" class="brand-logo" width="40" height="40" />
+                    <img src="~/images/logo.svg" alt="Тихий час" class="brand-logo" width="40" height="40" />
                     <div class="brand-text">
                         <span class="brand-mark">Тихий час</span>
                         <span class="brand-tag">барбершопы Краснодара</span>
@@ -43,7 +36,7 @@
                         <a asp-page="/BookingFlow/New" class="app-nav__link app-nav__link--primary">Записаться</a>
                         <a asp-page="/Account/Bookings/Index" class="app-nav__link">Мои записи</a>
                     }
-                    else
+                    else if (current is null)
                     {
                         <a asp-page="/Lead/Index" class="app-nav__link app-nav__link--primary">Записаться</a>
                     }
@@ -68,12 +61,6 @@
                         }
                         else
                         {
-                            <a asp-page="/Account/Notifications/Index" class="nav-icon-btn" title="Мои уведомления" aria-label="Уведомления">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                                </svg>
-                            </a>
                             <a asp-page="/Profile/Index" class="user-pill" title="@current.FullName · @current.RoleCode">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -85,34 +72,6 @@
                                 <button type="submit" class="btn-link btn-link--subtle">Выход</button>
                             </form>
                         }
-
-                        <a class="theme-toggle"
-                           asp-page="/Theme/Set"
-                           asp-route-value="@nextTheme"
-                           asp-route-returnUrl="@returnUrl"
-                           title="Переключить тему"
-                           aria-label="Переключить тему">
-                            @if (nextTheme == "dark")
-                            {
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                                </svg>
-                            }
-                            else
-                            {
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="5"></circle>
-                                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                                </svg>
-                            }
-                        </a>
                     </div>
                 </nav>
             </div>

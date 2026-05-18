@@ -3,6 +3,7 @@ using BarbershopCrm.Domain.Entities;
 using BarbershopCrm.Domain.Enums;
 using BarbershopCrm.Infrastructure.Auth;
 using BarbershopCrm.Infrastructure.Data;
+using BarbershopCrm.Infrastructure.Security;
 using BarbershopCrm.Web.Auth;
 using BarbershopCrm.Web.Pages;
 using BarbershopCrm.Web.Validation;
@@ -11,16 +12,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BarbershopCrm.Web.Pages.Masters;
 
-[AuthorizePage(RoleCode.Admin, RoleCode.Owner)]
+[AuthorizePage(RoleCode.Owner)]
 public class CreateModel : AppPageModel
 {
     private const string DefaultPosition = "Барбер";
 
     private readonly AppDbContext _db;
+    private readonly IPasswordHasher _hasher;
 
-    public CreateModel(AppDbContext db, ICurrentUserAccessor currentUser) : base(currentUser)
+    public CreateModel(AppDbContext db, IPasswordHasher hasher, ICurrentUserAccessor currentUser) : base(currentUser)
     {
         _db = db;
+        _hasher = hasher;
     }
 
     [BindProperty]
@@ -41,14 +44,12 @@ public class CreateModel : AppPageModel
         if (!ModelState.IsValid)
             return Page();
 
-        // Проверка доступа администратора
-        if (Current?.RoleCode == RoleCode.Admin)
+        var email = (Input.Email ?? string.Empty).Trim().ToLowerInvariant();
+
+        if (await _db.Users.AnyAsync(u => u.Login == email, ct))
         {
-            if (!Current.BranchId.HasValue || Input.BranchId != Current.BranchId.Value)
-            {
-                ModelState.AddModelError("", "Администратор может создавать мастеров только для своего филиала.");
-                return Page();
-            }
+            ModelState.AddModelError("Input.Email", "Этот email уже используется другим пользователем.");
+            return Page();
         }
 
         // Создание персоны
@@ -58,7 +59,7 @@ public class CreateModel : AppPageModel
             FirstName = Input.FirstName.Trim(),
             MiddleName = string.IsNullOrWhiteSpace(Input.MiddleName) ? null : Input.MiddleName.Trim(),
             Phone = Input.Phone.Trim(),
-            Email = string.IsNullOrWhiteSpace(Input.Email) ? null : Input.Email.Trim(),
+            Email = email,
             Gender = Input.Gender
         };
 
@@ -93,6 +94,31 @@ public class CreateModel : AppPageModel
             await _db.SaveChangesAsync(ct);
         }
 
+        // Создание учётной записи
+        var masterRoleId = await _db.Roles
+            .Where(r => r.Code == RoleCode.Master)
+            .Select(r => r.RoleId)
+            .SingleAsync(ct);
+
+        var hash = _hasher.Hash(Input.Password);
+
+        var user = new User
+        {
+            PersonaId = persona.PersonaId,
+            RoleId = masterRoleId,
+            BranchId = Input.BranchId,
+            Login = email,
+            PasswordHash = hash.HashBase64,
+            PasswordSalt = hash.SaltBase64,
+            PasswordIterations = hash.Iterations,
+            IsEmailConfirmed = true,
+            IsActive = true,
+            CreatedAt = DateTime.Now,
+        };
+
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync(ct);
+
         TempData["Success"] = $"Мастер «{persona.FullName}» успешно создан.";
         return RedirectToPage("Manage");
     }
@@ -105,17 +131,9 @@ public class CreateModel : AppPageModel
             .AsNoTracking()
             .ToListAsync(ct);
 
-        var branchesQuery = _db.Branches.Where(b => b.IsActive);
-
-        // Администратор видит только свой филиал
-        if (Current?.RoleCode == RoleCode.Admin && Current.BranchId.HasValue)
-        {
-            branchesQuery = branchesQuery.Where(b => b.BranchId == Current.BranchId.Value);
-        }
-
-        Branches = await branchesQuery
+        Branches = await _db.Branches.AsNoTracking()
+            .Where(b => b.IsActive)
             .OrderBy(b => b.Name)
-            .AsNoTracking()
             .ToListAsync(ct);
     }
 
@@ -136,9 +154,20 @@ public class CreateModel : AppPageModel
         [RegularExpression(PhoneValidation.RussianPhonePattern, ErrorMessage = PhoneValidation.ErrorMessage)]
         public string Phone { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Введите email для входа.")]
         [EmailAddress(ErrorMessage = "Некорректный email.")]
         [StringLength(120, ErrorMessage = "Email не должен превышать 120 символов.")]
-        public string? Email { get; set; }
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Введите пароль.")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Пароль должен быть от 6 до 100 символов.")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Подтвердите пароль.")]
+        [Compare(nameof(Password), ErrorMessage = "Пароли не совпадают.")]
+        [DataType(DataType.Password)]
+        public string PasswordConfirm { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Укажите пол.")]
         [StringLength(1, MinimumLength = 1, ErrorMessage = "Укажите пол.")]

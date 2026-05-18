@@ -1,0 +1,97 @@
+@page
+@model BarbershopCrm.Web.Pages.Owner.Users.IndexModel
+@{
+    ViewData["Title"] = "Управление · Пользователи";
+    ViewData["ManagementTab"] = "users";
+}
+
+<partial name="_ManagementTabs" />
+
+<section class="clients-table-section">
+    <div class="clients-table-header">
+        <div class="clients-table-header__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+        </div>
+        <h2>Пользователи</h2>
+        <span class="stat-badge__value" style="margin-left:auto;font-size:14px;color:var(--color-text-muted);">
+            Всего: @Model.Rows.Count
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="clients-table">
+            <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Email</th>
+                    <th>Телефон</th>
+                    <th>Текущая роль</th>
+                    <th>Филиал</th>
+                    <th style="width:240px;">Сменить роль</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Rows)
+                {
+                    <tr class="clients-table__row">
+                        <td>
+                            <div class="client-name">
+                                <div class="client-avatar">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
+                                @user.FullName
+                            </div>
+                        </td>
+                        <td class="tnum">@user.Login</td>
+                        <td class="tnum">@user.Phone</td>
+                        <td>
+                            <span class="badge badge--info">@user.RoleName</span>
+                        </td>
+                        <td class="muted">@(user.BranchName ?? "—")</td>
+                        <td>
+                            <form method="post" asp-page-handler="ChangeRole" style="display:flex;gap:8px;align-items:center;">
+                                <input type="hidden" name="userId" value="@user.UserId" />
+                                <select name="newRoleId" class="form-select" style="flex:1;">
+                                    @foreach (var role in Model.AvailableRoles)
+                                    {
+                                        if (role.RoleId == user.RoleId)
+                                        {
+                                            <option value="@role.RoleId" selected="selected">@role.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@role.RoleId">@role.Name</option>
+                                        }
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn--primary btn--sm">Сохранить</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty-state" style="margin-top:var(--space-5);">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <h3>Нет пользователей</h3>
+            <p>Пользователи других ролей появятся здесь</p>
+        </div>
+    }
+</section>

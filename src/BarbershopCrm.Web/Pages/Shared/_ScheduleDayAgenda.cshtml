@@ -38,6 +38,10 @@
                                         <div class="schedule-agenda__service">@b.Service.Name</div>
                                         <div class="schedule-agenda__meta-line muted">
                                             @b.PriceSnapshot.ToString("0") ₽
+                                            @if (b.LoyaltyDiscountPercent > 0)
+                                            {
+                                                <span class="schedule-agenda__badge schedule-agenda__badge--discount">-@b.LoyaltyDiscountPercent%</span>
+                                            }
                                             @if (!string.IsNullOrWhiteSpace(b.Client.Persona.Phone))
                                             {
                                                 <span class="schedule-agenda__sep">·</span>
@@ -50,11 +54,23 @@
                                     </div>
                                 </div>
 
-                                <dialog class="schedule-agenda__dialog" id="schedule-agenda-dlg-@b.BookingId" aria-labelledby="schedule-agenda-dlg-title-@b.BookingId">
-                                    <div class="schedule-agenda__dialog-inner">
-                                        <header class="schedule-agenda__dialog-head">
-                                            <h2 class="schedule-agenda__dialog-title" id="schedule-agenda-dlg-title-@b.BookingId">@b.Client.Persona.ShortName</h2>
-                                            <button type="button" class="schedule-agenda__dialog-close" onclick="document.getElementById('schedule-agenda-dlg-@b.BookingId').close()" aria-label="Закрыть">
+                                <dialog class="schedule-dialog" id="schedule-agenda-dlg-@b.BookingId" aria-labelledby="schedule-agenda-dlg-title-@b.BookingId">
+                                    <div class="schedule-dialog__overlay" onclick="document.getElementById('schedule-agenda-dlg-@b.BookingId').close()"></div>
+                                    <div class="schedule-dialog__content">
+                                        <header class="schedule-dialog__header">
+                                            <div class="schedule-dialog__header-main">
+                                                <div class="schedule-dialog__avatar">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                        <circle cx="12" cy="7" r="4"></circle>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h2 class="schedule-dialog__title" id="schedule-agenda-dlg-title-@b.BookingId">@b.Client.Persona.ShortName</h2>
+                                                    <span class="schedule-dialog__badge schedule-dialog__badge--@st">@row.StatusLabel</span>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="schedule-dialog__close" onclick="document.getElementById('schedule-agenda-dlg-@b.BookingId').close()" aria-label="Закрыть">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                                     <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -64,44 +80,48 @@
                                         
                                         <div asp-validation-summary="All" class="alert alert--error" style="margin-top: 1rem;"></div>
                                         
-                                        <div class="schedule-agenda__dialog-info">
-                                            <div class="schedule-agenda__dialog-info-item">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <circle cx="12" cy="12" r="10"></circle>
-                                                    <polyline points="12 6 12 12 16 14"></polyline>
-                                                </svg>
-                                                <span>@b.StartDateTime.ToString("HH:mm")–@b.StartDateTime.AddMinutes(b.DurationMinutes).ToString("HH:mm")</span>
+                                        <div class="schedule-dialog__info-grid">
+                                            <div class="schedule-dialog__info-card">
+                                                <div class="schedule-dialog__info-icon">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <circle cx="12" cy="12" r="10"></circle>
+                                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                                    </svg>
+                                                </div>
+                                                <div class="schedule-dialog__info-content">
+                                                    <div class="schedule-dialog__info-label">Время</div>
+                                                    <div class="schedule-dialog__info-value">@b.StartDateTime.ToString("HH:mm")–@b.StartDateTime.AddMinutes(b.DurationMinutes).ToString("HH:mm")</div>
+                                                </div>
                                             </div>
-                                            <div class="schedule-agenda__dialog-info-item">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                                                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                                                </svg>
-                                                <span>@b.Service.Name</span>
+                                            <div class="schedule-dialog__info-card">
+                                                <div class="schedule-dialog__info-icon">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                                        <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                                    </svg>
+                                                </div>
+                                                <div class="schedule-dialog__info-content">
+                                                    <div class="schedule-dialog__info-label">Услуга</div>
+                                                    <div class="schedule-dialog__info-value">@b.Service.Name</div>
+                                                </div>
                                             </div>
-                                        </div>
-
-                                        <div class="schedule-agenda__dialog-status">
-                                            <span class="schedule-agenda__badge schedule-agenda__badge--@st">@row.StatusLabel</span>
                                         </div>
 
                                         @if (Model.FormTarget == ScheduleAgendaFormTarget.AdminSchedule && Model.BranchId.HasValue)
                                         {
-                                            <div class="schedule-agenda__dialog-link-section">
-                                                <a class="schedule-agenda__dialog-link" href="/Admin/Bookings?BookingId=@b.BookingId&amp;BranchId=@Model.BranchId.Value">
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                                        <polyline points="15 3 21 3 21 9"></polyline>
-                                                        <line x1="10" y1="14" x2="21" y2="3"></line>
-                                                    </svg>
-                                                    Открыть в журнале записей
-                                                </a>
-                                            </div>
+                                            <a class="schedule-dialog__link" href="/Admin/Bookings?BookingId=@b.BookingId&amp;BranchId=@Model.BranchId.Value">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                                </svg>
+                                                Открыть в журнале записей
+                                            </a>
                                         }
 
                                         @if (ScheduleAgendaRules.CanConfirm(b) || ScheduleAgendaRules.CanCancel(b) || ScheduleAgendaRules.CanCompleteOrNoShow(b))
                                         {
-                                            <div class="schedule-agenda__dialog-actions">
+                                            <div class="schedule-dialog__actions">
                                                 @if (ScheduleAgendaRules.CanConfirm(b))
                                                 {
                                                     <form method="post" asp-page="@postPage" asp-page-handler="Confirm" asp-route-id="@b.BookingId" data-busy>
@@ -110,8 +130,8 @@
                                                             <input type="hidden" name="BranchId" value="@Model.BranchId.Value" />
                                                         }
                                                         <input type="hidden" name="Date" value="@Model.DateParam" />
-                                                        <button class="btn btn--primary" type="submit">
-                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <button class="btn btn--outline schedule-dialog__action-btn" type="submit">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                                 <polyline points="20 6 9 17 4 12"></polyline>
                                                             </svg>
                                                             Подтвердить
@@ -126,8 +146,8 @@
                                                             <input type="hidden" name="BranchId" value="@Model.BranchId.Value" />
                                                         }
                                                         <input type="hidden" name="Date" value="@Model.DateParam" />
-                                                        <button class="btn btn--outline" type="submit">
-                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <button class="btn btn--outline schedule-dialog__action-btn schedule-dialog__action-btn--danger" type="submit">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                                 <circle cx="12" cy="12" r="10"></circle>
                                                                 <line x1="15" y1="9" x2="9" y2="15"></line>
                                                                 <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -135,71 +155,91 @@
                                                             Не пришёл
                                                         </button>
                                                     </form>
-                                                    
-                                                    <div class="schedule-agenda__complete-section">
-                                                        <form method="post" asp-page="@postPage" asp-page-handler="Complete" class="schedule-agenda__complete-form" data-busy>
-                                                            @if (Model.FormTarget == ScheduleAgendaFormTarget.AdminSchedule && Model.BranchId.HasValue)
-                                                            {
-                                                                <input type="hidden" name="BranchId" value="@Model.BranchId.Value" />
-                                                            }
-                                                            <input type="hidden" name="Date" value="@Model.DateParam" />
-                                                            <input type="hidden" name="Complete.BookingId" value="@b.BookingId" />
-                                                            @{
-                                                                var finalAmount = b.PriceSnapshot * (1 - b.LoyaltyDiscountPercent / 100m);
-                                                                var hasDiscount = b.LoyaltyDiscountPercent > 0;
-                                                            }
-                                                            <div class="form-group">
-                                                                <span class="schedule-agenda__complete-amount">
-                                                                    Сумма: <strong>@finalAmount.ToString("0") ₽</strong>
-                                                                    @if (hasDiscount)
-                                                                    {
-                                                                        <small class="form-hint">
-                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                                                <circle cx="12" cy="12" r="10"></circle>
-                                                                                <path d="M12 16v-4"></path>
-                                                                                <path d="M12 8h.01"></path>
-                                                                            </svg>
-                                                                            Базовая цена: @b.PriceSnapshot.ToString("0") ₽, скидка @b.LoyaltyDiscountPercent%
-                                                                        </small>
-                                                                    }
-                                                                </span>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label for="dlg-notes-@b.BookingId">Заметки</label>
-                                                                <textarea id="dlg-notes-@b.BookingId" name="Complete.MasterNotes" maxlength="500" class="input" rows="3" placeholder="Комментарии о визите (необязательно)"></textarea>
-                                                            </div>
-                                                            <button class="btn btn--primary" type="submit">
-                                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                                                </svg>
-                                                                Завершить визит
-                                                            </button>
-                                                        </form>
-                                                    </div>
                                                 }
-                                                @if (ScheduleAgendaRules.CanCancel(b))
-                                                {
-                                                    <form method="post" asp-page="@postPage" asp-page-handler="Cancel" asp-route-id="@b.BookingId" data-busy onsubmit="return confirm('Отменить запись?');">
+                                            </div>
+
+                                            @if (ScheduleAgendaRules.CanCompleteOrNoShow(b))
+                                            {
+                                                <div class="schedule-dialog__complete-section">
+                                                    <form method="post" asp-page="@postPage" asp-page-handler="Complete" class="schedule-dialog__complete-form" data-busy>
                                                         @if (Model.FormTarget == ScheduleAgendaFormTarget.AdminSchedule && Model.BranchId.HasValue)
                                                         {
                                                             <input type="hidden" name="BranchId" value="@Model.BranchId.Value" />
                                                         }
                                                         <input type="hidden" name="Date" value="@Model.DateParam" />
-                                                        <button class="btn btn--outline" type="submit">
-                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                        <input type="hidden" name="Complete.BookingId" value="@b.BookingId" />
+                                                        @{
+                                                            var finalAmount = b.PriceSnapshot * (1 - b.LoyaltyDiscountPercent / 100m);
+                                                            var hasDiscount = b.LoyaltyDiscountPercent > 0;
+                                                            var discountReasonText = hasDiscount ? b.LoyaltyDiscountReason switch
+                                                            {
+                                                                "Tier" => "Уровень лояльности",
+                                                                "Birthday" => "День рождения",
+                                                                "FirstVisit" => "Первый визит",
+                                                                _ => null
+                                                            } : null;
+                                                        }
+                                                        <div class="schedule-dialog__amount-card">
+                                                            <div class="schedule-dialog__amount-icon">
+                                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                    <path d="M6 8h8a4 4 0 0 1 0 8H6V8z"></path>
+                                                                    <path d="M6 12h8"></path>
+                                                                    <path d="M6 8V6"></path>
+                                                                    <path d="M6 16v2"></path>
+                                                                </svg>
+                                                            </div>
+                                                            <div class="schedule-dialog__amount-content">
+                                                                <div class="schedule-dialog__amount-label">Сумма</div>
+                                                                <div class="schedule-dialog__amount-value">@finalAmount.ToString("0") ₽</div>
+                                                                @if (hasDiscount)
+                                                                {
+                                                                    <div class="schedule-dialog__amount-discount">
+                                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                            <circle cx="12" cy="12" r="10"></circle>
+                                                                            <path d="M12 16v-4"></path>
+                                                                            <path d="M12 8h.01"></path>
+                                                                        </svg>
+                                                                        @b.PriceSnapshot.ToString("0") ₽ · скидка @b.LoyaltyDiscountPercent%@(discountReasonText != null ? $" · {discountReasonText}" : "")
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="dlg-notes-@b.BookingId">Заметки</label>
+                                                            <textarea id="dlg-notes-@b.BookingId" name="Complete.MasterNotes" maxlength="500" class="input schedule-dialog__textarea" rows="3" placeholder="Комментарии о визите (необязательно)"></textarea>
+                                                        </div>
+                                                        <button class="btn btn--primary schedule-dialog__complete-btn" type="submit">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                <polyline points="20 6 9 17 4 12"></polyline>
                                                             </svg>
-                                                            Отменить
+                                                            Завершить визит
                                                         </button>
                                                     </form>
-                                                }
-                                            </div>
+                                                </div>
+                                            }
+
+                                            @if (ScheduleAgendaRules.CanCancel(b))
+                                            {
+                                                <form method="post" asp-page="@postPage" asp-page-handler="Cancel" asp-route-id="@b.BookingId" data-busy onsubmit="return confirm('Отменить запись?');" class="schedule-dialog__cancel-form">
+                                                    @if (Model.FormTarget == ScheduleAgendaFormTarget.AdminSchedule && Model.BranchId.HasValue)
+                                                    {
+                                                        <input type="hidden" name="BranchId" value="@Model.BranchId.Value" />
+                                                    }
+                                                    <input type="hidden" name="Date" value="@Model.DateParam" />
+                                                    <button class="btn btn--outline schedule-dialog__cancel-btn" type="submit">
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                        </svg>
+                                                        Отменить
+                                                    </button>
+                                                </form>
+                                            }
                                         }
 
                                         @if ((ScheduleAgendaRules.CanConfirm(b) || ScheduleAgendaRules.CanCancel(b)) && !ScheduleAgendaRules.CanCompleteOrNoShow(b) && (b.Status == BookingStatus.Created || b.Status == BookingStatus.Confirmed))
                                         {
-                                            <div class="schedule-agenda__dialog-hint">
+                                            <div class="schedule-dialog__hint">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                     <circle cx="12" cy="12" r="10"></circle>
                                                     <path d="M12 16v-4"></path>
@@ -211,7 +251,7 @@
 
                                         @if (!ScheduleAgendaRules.CanConfirm(b) && !ScheduleAgendaRules.CanCancel(b) && !ScheduleAgendaRules.CanCompleteOrNoShow(b))
                                         {
-                                            <div class="schedule-agenda__dialog-hint">
+                                            <div class="schedule-dialog__hint">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                     <circle cx="12" cy="12" r="10"></circle>
                                                     <path d="M12 16v-4"></path>

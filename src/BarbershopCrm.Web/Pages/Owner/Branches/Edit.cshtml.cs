@@ -61,49 +61,53 @@ public class EditModel : AppPageModel
         if (!ModelState.IsValid)
             return Page();
 
-        string? oldImageUrl = branch.ImageUrl;
-        bool imageReplaced = false;
-
-        if (Input.RemoveImage)
+        try
         {
-            branch.ImageUrl = null;
-        }
+            // Сначала сохраняем новое изображение, только потом удаляем старое
+            string? oldImageUrl = branch.ImageUrl;
 
-        if (Input.ImageFile is { Length: > 0 })
-        {
-            string? newUrl;
-            try
+            if (Input.RemoveImage)
             {
-                newUrl = await _images.SaveAsync(Input.ImageFile, "branches", ct);
+                branch.ImageUrl = null;
             }
-            catch (InvalidOperationException ex)
+
+            if (Input.ImageFile is { Length: > 0 })
             {
-                ModelState.AddModelError("Input.ImageFile", ex.Message);
+                var newUrl = await _images.SaveAsync(Input.ImageFile, "branches", ct);
+                branch.ImageUrl = newUrl;
+            }
+
+            branch.Name = Input.Name.Trim();
+            branch.Address = Input.Address.Trim();
+            branch.Latitude = Input.Latitude;
+            branch.Longitude = Input.Longitude;
+            branch.Phone = string.IsNullOrWhiteSpace(Input.Phone) ? null : Input.Phone.Trim();
+            if (!TimeOnly.TryParse(Input.OpeningTime, out var openTime) || !TimeOnly.TryParse(Input.ClosingTime, out var closeTime))
+            {
+                ModelState.AddModelError(string.Empty, "Некорректный формат времени.");
                 return Page();
             }
-            branch.ImageUrl = newUrl;
-            imageReplaced = true;
-        }
+            branch.OpeningTime = openTime;
+            branch.ClosingTime = closeTime;
+            branch.IsActive = Input.IsActive;
 
-        branch.Name = Input.Name.Trim();
-        branch.Address = Input.Address.Trim();
-        branch.Latitude = Input.Latitude;
-        branch.Longitude = Input.Longitude;
-        branch.Phone = string.IsNullOrWhiteSpace(Input.Phone) ? null : Input.Phone.Trim();
-        branch.OpeningTime = TimeOnly.Parse(Input.OpeningTime);
-        branch.ClosingTime = TimeOnly.Parse(Input.ClosingTime);
-        branch.IsActive = Input.IsActive;
+            await _db.SaveChangesAsync(ct);
 
-        await _db.SaveChangesAsync(ct);
-
-        if (Input.RemoveImage || imageReplaced)
-        {
-            if (!string.IsNullOrEmpty(oldImageUrl))
+            // Удаляем старое изображение только после успешного сохранения в БД
+            if (branch.ImageUrl != oldImageUrl && !string.IsNullOrEmpty(oldImageUrl))
+            {
                 _images.Delete(oldImageUrl);
-        }
+            }
 
-        TempData["Success"] = $"Филиал «{branch.Name}» обновлён.";
-        return RedirectToPage("Index");
+            TempData["Success"] = $"Филиал «{branch.Name}» обновлён.";
+            return RedirectToPage("Index");
+        }
+        catch (Exception ex)
+        {
+            var msg = ex.InnerException?.Message ?? ex.Message;
+            ModelState.AddModelError(string.Empty, $"Ошибка: {msg}");
+            return Page();
+        }
     }
 
     public class BranchEditInput
@@ -129,10 +133,10 @@ public class EditModel : AppPageModel
 
         public bool RemoveImage { get; set; }
 
-        [Required(ErrorMessage = "Укажите время открытия."), RegularExpression(@"^\d{2}:\d{2}$", ErrorMessage = "Время в формате ЧЧ:ММ.")]
+        [Required(ErrorMessage = "Укажите время открытия."), RegularExpression(@"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$", ErrorMessage = "Время в формате ЧЧ:ММ (00:00–23:59).")]
         public string OpeningTime { get; set; } = "10:00";
 
-        [Required(ErrorMessage = "Укажите время закрытия."), RegularExpression(@"^\d{2}:\d{2}$", ErrorMessage = "Время в формате ЧЧ:ММ.")]
+        [Required(ErrorMessage = "Укажите время закрытия."), RegularExpression(@"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$", ErrorMessage = "Время в формате ЧЧ:ММ (00:00–23:59).")]
         public string ClosingTime { get; set; } = "22:00";
 
         public bool IsActive { get; set; } = true;

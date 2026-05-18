@@ -19,10 +19,7 @@
     <div class="site-footer__inner">
         <div class="site-footer__col site-footer__col--brand">
             <div class="site-footer__brand-wrapper">
-                <svg class="site-footer__brand-icon" width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16 4L8 8V16C8 21.5 11.5 26.5 16 28C20.5 26.5 24 21.5 24 16V8L16 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 16L15 19L20 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <img src="~/images/logo.svg" class="site-footer__brand-icon" width="40" height="40" alt="Тихий час" />
                 <div class="site-footer__brand">Тихий час</div>
             </div>
             <p class="site-footer__lead">Премиальная сеть барбершопов в Краснодаре. Профессиональный уход, классические стрижки и современный сервис онлайн-записи.</p>
@@ -58,7 +55,7 @@
                     <li><a asp-page="/BookingFlow/New">Записаться онлайн</a></li>
                     <li><a asp-page="/Account/Bookings/Index">Мои записи</a></li>
                 }
-                else
+                else if (current is null)
                 {
                     <li><a asp-page="/Lead/Index">Оставить заявку</a></li>
                 }

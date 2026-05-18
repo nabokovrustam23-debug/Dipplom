@@ -2,7 +2,6 @@ using BarbershopCrm.Domain.Entities;
 using BarbershopCrm.Domain.Enums;
 using BarbershopCrm.Infrastructure.Data;
 using BarbershopCrm.Infrastructure.Loyalty;
-using BarbershopCrm.Infrastructure.Notifications;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -13,18 +12,15 @@ public sealed class BookingService : IBookingService
 {
     private readonly AppDbContext _db;
     private readonly BookingOptions _opts;
-    private readonly INotificationService? _notifications;
     private readonly ILoyaltyDiscountResolver? _loyaltyResolver;
 
     public BookingService(
         AppDbContext db,
         IOptions<BookingOptions> opts,
-        INotificationService? notifications = null,
-        ILoyaltyDiscountResolver? loyaltyResolver = null)
+        ILoyaltyDiscountResolver loyaltyResolver)
     {
         _db = db;
         _opts = opts.Value;
-        _notifications = notifications;
         _loyaltyResolver = loyaltyResolver;
     }
 
@@ -121,9 +117,6 @@ public sealed class BookingService : IBookingService
             return BookingResult.Fail(BookingErrorCode.SlotTaken, "Слот занят, выберите другое время.");
         }
 
-        if (_notifications is not null)
-            await _notifications.OnBookingCreatedAsync(booking.BookingId, ct);
-
         return BookingResult.Ok(booking.BookingId);
     }
 
@@ -155,8 +148,6 @@ public sealed class BookingService : IBookingService
         booking.CancelReason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
         booking.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
-        if (_notifications is not null)
-            await _notifications.OnBookingCancelledAsync(booking.BookingId, booking.CancelReason, ct);
         return BookingResult.Ok(booking.BookingId);
     }
 
@@ -175,8 +166,6 @@ public sealed class BookingService : IBookingService
         booking.Status = BookingStatus.Confirmed;
         booking.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
-        if (_notifications is not null)
-            await _notifications.OnBookingConfirmedAsync(booking.BookingId, ct);
         return BookingResult.Ok(booking.BookingId);
     }
 
@@ -219,8 +208,6 @@ public sealed class BookingService : IBookingService
             booking.Visit.CompletedAt = DateTime.UtcNow;
         }
         await _db.SaveChangesAsync(ct);
-        if (_notifications is not null)
-            await _notifications.OnBookingCompletedAsync(booking.BookingId, ct);
         return BookingResult.Ok(booking.BookingId);
     }
 

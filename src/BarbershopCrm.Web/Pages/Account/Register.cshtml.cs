@@ -1,23 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using BarbershopCrm.Infrastructure.Auth;
-using BarbershopCrm.Infrastructure.Email;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Options;
 
 namespace BarbershopCrm.Web.Pages.Account;
 
 public sealed class RegisterModel : PageModel
 {
     private readonly IUserAuthService _auth;
-    private readonly IEmailSender _email;
-    private readonly AuthOptions _options;
 
-    public RegisterModel(IUserAuthService auth, IEmailSender email, IOptions<AuthOptions> options)
+    public RegisterModel(IUserAuthService auth)
     {
         _auth = auth;
-        _email = email;
-        _options = options.Value;
     }
 
     [BindProperty]
@@ -50,19 +44,9 @@ public sealed class RegisterModel : PageModel
 
         switch (result)
         {
-            case RegistrationResult.Success success:
-            {
-                var link = BuildConfirmationLink(success.EmailVerificationToken);
-                var message = AccountEmails.EmailVerification(
-                    Input.Email.Trim().ToLowerInvariant(),
-                    $"{Input.LastName} {Input.FirstName}".Trim(),
-                    link,
-                    _options.EmailVerificationTokenLifetimeHours);
-                await _email.SendAsync(message, ct);
-
-                return RedirectToPage("/Account/RegisterConfirmation",
-                    new { email = Input.Email.Trim().ToLowerInvariant() });
-            }
+            case RegistrationResult.Success:
+                TempData["Success"] = "Аккаунт успешно создан. Теперь вы можете войти.";
+                return RedirectToPage("/Account/Login");
 
             case RegistrationResult.Failure { Reason: RegistrationFailureReason.EmailAlreadyUsed }:
                 ModelState.AddModelError($"Input.{nameof(Input.Email)}",
@@ -77,16 +61,6 @@ public sealed class RegisterModel : PageModel
 
         ErrorMessage = "Не удалось создать аккаунт. Попробуйте позже.";
         return Page();
-    }
-
-    private string BuildConfirmationLink(string token)
-    {
-        var pageUrl = Url.Page("/Account/ConfirmEmail", values: new { token });
-        if (!string.IsNullOrEmpty(_options.PublicBaseUrl))
-        {
-            return _options.PublicBaseUrl.TrimEnd('/') + pageUrl;
-        }
-        return $"{Request.Scheme}://{Request.Host}{pageUrl}";
     }
 
     public sealed class RegisterInput

@@ -72,22 +72,6 @@
                     <dt>Email</dt>
                     <dd>
                         <span class="profile-details__value">@Model.Current.Email</span>
-                        @if (Model.Current.IsEmailConfirmed)
-                        {
-                            <span class="badge badge--ok">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                                подтверждён
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="badge badge--warn">не подтверждён</span>
-                            <a asp-page="/Account/ResendConfirmationEmail"
-                               asp-route-email="@Model.Current.Email"
-                               class="btn-link btn-link--small">Отправить ссылку</a>
-                        }
                     </dd>
                 </div>
 
@@ -146,6 +130,53 @@
                 </a>
             </div>
         }
+    </div>
+
+    <!-- Password Change Card -->
+    <div class="profile-grid" style="margin-top:var(--space-5);">
+        <div class="card profile-info-card">
+            <h2 class="profile-card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Сменить пароль
+            </h2>
+            <form method="post" asp-page-handler="ChangePassword">
+                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                <dl class="profile-details">
+                    <div class="profile-details__item">
+                        <dt><label asp-for="PasswordInput.CurrentPassword"></label></dt>
+                        <dd>
+                            <input asp-for="PasswordInput.CurrentPassword" class="form-input" style="max-width:280px;" />
+                            <span asp-validation-for="PasswordInput.CurrentPassword" class="text-danger"></span>
+                        </dd>
+                    </div>
+                    <div class="profile-details__item">
+                        <dt><label asp-for="PasswordInput.NewPassword"></label></dt>
+                        <dd>
+                            <input asp-for="PasswordInput.NewPassword" class="form-input" style="max-width:280px;" />
+                            <span asp-validation-for="PasswordInput.NewPassword" class="text-danger"></span>
+                        </dd>
+                    </div>
+                    <div class="profile-details__item">
+                        <dt><label asp-for="PasswordInput.NewPasswordRepeat"></label></dt>
+                        <dd>
+                            <input asp-for="PasswordInput.NewPasswordRepeat" class="form-input" style="max-width:280px;" />
+                            <span asp-validation-for="PasswordInput.NewPasswordRepeat" class="text-danger"></span>
+                        </dd>
+                    </div>
+                </dl>
+                <button type="submit" class="btn btn--primary" style="margin-top:var(--space-2);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Сохранить пароль
+                </button>
+            </form>
+        </div>
     </div>
 
     <!-- Actions -->

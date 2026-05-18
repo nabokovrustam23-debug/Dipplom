@@ -55,13 +55,21 @@ try
     builder.Services.Configure<BookingOptions>(builder.Configuration.GetSection("Booking"));
     builder.Services.AddScoped<IBookingService, BookingService>();
 
-    builder.Services.AddNotificationBackground();
-
     var app = builder.Build();
+
+    AppDomain.CurrentDomain.FirstChanceException += (_, args) =>
+    {
+        if (args.Exception is IOException)
+            Log.Warning(args.Exception, "First-chance IOException");
+    };
 
     app.UseSerilogRequestLogging();
 
-    if (!app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    else
     {
         app.UseExceptionHandler("/Error");
         app.UseHsts();
@@ -97,6 +105,7 @@ try
         var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("SeedDevData");
         await SeedDevData.ApplyAsync(db, hasher, logger);
+        await SeedBigData.ApplyAsync(db, hasher, logger);
     }
 
     app.Run();

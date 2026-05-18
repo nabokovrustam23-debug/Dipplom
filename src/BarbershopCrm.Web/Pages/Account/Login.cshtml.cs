@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using BarbershopCrm.Domain.Enums;
 using BarbershopCrm.Infrastructure.Auth;
 using BarbershopCrm.Infrastructure.Data;
 using BarbershopCrm.Web.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace BarbershopCrm.Web.Pages.Account;
@@ -13,12 +15,14 @@ public sealed class LoginModel : PageModel
     private readonly IUserAuthService _auth;
     private readonly AuthOptions _options;
     private readonly IWebHostEnvironment _env;
+    private readonly AppDbContext _db;
 
-    public LoginModel(IUserAuthService auth, IOptions<AuthOptions> options, IWebHostEnvironment env)
+    public LoginModel(IUserAuthService auth, IOptions<AuthOptions> options, IWebHostEnvironment env, AppDbContext db)
     {
         _auth = auth;
         _options = options.Value;
         _env = env;
+        _db = db;
     }
 
     [BindProperty]
@@ -40,12 +44,11 @@ public sealed class LoginModel : PageModel
         new QuickLoginAccount("client1@thq.ru", "Клиент",         "обычный клиент"),
     };
 
-    public IActionResult OnGet()
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        // Already logged in — bounce home (or to ReturnUrl).
-        if (HttpContext.Items[CurrentUserAccessor.HttpContextItemKey] is CurrentUser)
+        if (HttpContext.Items[CurrentUserAccessor.HttpContextItemKey] is CurrentUser cu)
         {
-            return SafeRedirect(ReturnUrl);
+            return await RedirectAfterLogin(cu.UserId, ct);
         }
         return Page();
     }
@@ -86,7 +89,7 @@ public sealed class LoginModel : PageModel
         {
             case LoginResult.Success success:
                 SessionCookie.Set(HttpContext, _options, success.SessionToken, success.ExpiresAt);
-                return SafeRedirect(ReturnUrl);
+                return await RedirectAfterLogin(success.UserId, ct);
 
             case LoginResult.Failure { Reason: LoginFailureReason.AccountInactive }:
                 ErrorMessage = "Аккаунт деактивирован. Обратитесь к администратору.";
@@ -99,11 +102,24 @@ public sealed class LoginModel : PageModel
         }
     }
 
-    private IActionResult SafeRedirect(string? returnUrl)
+    private async Task<IActionResult> RedirectAfterLogin(int userId, CancellationToken ct)
     {
-        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-            return LocalRedirect(returnUrl);
-        return RedirectToPage("/Index");
+        if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
+            return LocalRedirect(ReturnUrl);
+
+        var roleCode = await _db.Users.AsNoTracking()
+            .Where(u => u.UserId == userId)
+            .Select(u => u.Role.Code)
+            .FirstOrDefaultAsync(ct);
+
+        return roleCode switch
+        {
+            RoleCode.Client => RedirectToPage("/Account/Bookings/Index"),
+            RoleCode.Master => RedirectToPage("/MasterArea/Bookings"),
+            RoleCode.Admin => RedirectToPage("/Admin/Leads/Index"),
+            RoleCode.Owner => RedirectToPage("/Owner/Analytics/Index"),
+            _ => RedirectToPage("/Index"),
+        };
     }
 
     public sealed class LoginInput

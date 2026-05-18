@@ -14,7 +14,7 @@
             {
                 <a class="btn btn--soft" asp-page="/BookingFlow/New">Записаться онлайн</a>
             }
-            else
+            else if (!Model.IsAuthenticated)
             {
                 <a class="btn btn--soft" asp-page="/Lead/Index">Оставить заявку</a>
             }
@@ -63,10 +63,7 @@
             else
             {
                 <div class="image-thumb image-placeholder branch-card__image" aria-hidden="true">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
+                    <img src="~/images/branch-placeholder.svg" alt="" style="width:48px;height:48px;" />
                 </div>
             }
             <h3><a asp-page="/Branches/Details" asp-route-id="@branch.BranchId">@branch.Name</a></h3>
@@ -98,10 +95,7 @@
             else
             {
                 <div class="image-thumb image-placeholder service-card__image" aria-hidden="true">
-                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                        <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                    </svg>
+                    <img src="~/images/service-placeholder.svg" alt="" style="width:56px;height:56px;" />
                 </div>
             }
             <h3>@service.Name</h3>

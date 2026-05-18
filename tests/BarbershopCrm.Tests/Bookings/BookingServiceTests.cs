@@ -2,6 +2,7 @@ using BarbershopCrm.Domain.Entities;
 using BarbershopCrm.Domain.Enums;
 using BarbershopCrm.Infrastructure.Bookings;
 using BarbershopCrm.Infrastructure.Data;
+using BarbershopCrm.Infrastructure.Loyalty;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ public class BookingServiceTests : IAsyncLifetime
     private int _adminUserId;
     private int _ownerUserId;
     private int _masterUserId;
+    private readonly FakeDiscountResolver _fakeDiscount = new();
 
     public BookingServiceTests()
     {
@@ -122,7 +124,13 @@ public class BookingServiceTests : IAsyncLifetime
     }
 
     private BookingService NewService(AppDbContext db) =>
-        new BookingService(db, Options.Create(new BookingOptions { SlotIntervalMinutes = 15, CancelCutoffHours = 2 }));
+        new BookingService(db, Options.Create(new BookingOptions { SlotIntervalMinutes = 15, CancelCutoffHours = 2 }), _fakeDiscount);
+
+    private sealed class FakeDiscountResolver : ILoyaltyDiscountResolver
+    {
+        public Task<DiscountResolution> ResolveDiscountAsync(int clientId, DateTime bookingDateTime, DateOnly? clientBirthDate, CancellationToken ct = default)
+            => Task.FromResult(DiscountResolution.None());
+    }
 
     [Fact]
     public async Task Create_ValidSlot_Succeeds()

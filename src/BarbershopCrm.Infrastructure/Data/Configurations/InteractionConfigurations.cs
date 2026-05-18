@@ -45,41 +45,6 @@ public sealed class LeadConfiguration : IEntityTypeConfiguration<Lead>
     }
 }
 
-public sealed class NotificationConfiguration : IEntityTypeConfiguration<Notification>
-{
-    public void Configure(EntityTypeBuilder<Notification> b)
-    {
-        b.ToTable("Notifications", t =>
-        {
-            t.HasCheckConstraint(
-                "CK_Notifications_Channel",
-                $"Channel IN ('{NotificationChannel.Email}','{NotificationChannel.Sms}','{NotificationChannel.InApp}')");
-            t.HasCheckConstraint(
-                "CK_Notifications_Status",
-                $"Status IN ('{NotificationStatus.Pending}','{NotificationStatus.Sent}','{NotificationStatus.Failed}')");
-        });
-
-        b.HasKey(x => x.NotificationId);
-        b.Property(x => x.Channel).IsRequired();
-        b.Property(x => x.Body).IsRequired();
-        b.Property(x => x.Status).IsRequired().HasDefaultValue(NotificationStatus.Pending);
-        b.Property(x => x.CreatedAt).HasDefaultValueSql("(datetime('now'))");
-
-        b.HasIndex(x => new { x.Status, x.CreatedAt })
-            .HasDatabaseName("IX_Notifications_Status_Created");
-
-        b.HasOne(x => x.Recipient)
-            .WithMany()
-            .HasForeignKey(x => x.RecipientPersonaId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        b.HasOne(x => x.RelatedBooking)
-            .WithMany()
-            .HasForeignKey(x => x.RelatedBookingId)
-            .OnDelete(DeleteBehavior.SetNull);
-    }
-}
-
 public sealed class ConsentLogConfiguration : IEntityTypeConfiguration<ConsentLogEntry>
 {
     public void Configure(EntityTypeBuilder<ConsentLogEntry> b)

@@ -61,8 +61,6 @@ CREATE TABLE "ConsentLog" (
     "PersonaId" INTEGER NOT NULL,
     "ConsentType" TEXT NOT NULL,
     "AcceptedAt" TEXT NOT NULL DEFAULT ((datetime('now'))),
-    "IpAddress" TEXT NULL,
-    "UserAgent" TEXT NULL,
     CONSTRAINT "CK_ConsentLog_Type" CHECK (ConsentType IN ('PersonalData','Marketing')),
     CONSTRAINT "FK_ConsentLog_Persona_PersonaId" FOREIGN KEY ("PersonaId") REFERENCES "Persona" ("PersonaId") ON DELETE RESTRICT
 );

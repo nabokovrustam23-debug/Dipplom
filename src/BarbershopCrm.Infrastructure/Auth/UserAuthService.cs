@@ -262,7 +262,6 @@ public sealed class UserAuthService : IUserAuthService
             Purpose = UserTokenPurpose.PasswordReset,
             Token = tokenString,
             ExpiresAt = now.AddHours(_options.PasswordResetTokenLifetimeHours),
-            CreatedAt = now,
         });
 
         await _db.SaveChangesAsync(ct);

@@ -2,8 +2,6 @@
     "BranchId" INTEGER NOT NULL CONSTRAINT "PK_Branches" PRIMARY KEY AUTOINCREMENT,
     "Name" TEXT NOT NULL,
     "Address" TEXT NOT NULL,
-    "Latitude" REAL NULL,
-    "Longitude" REAL NULL,
     "Phone" TEXT NULL,
     "ImageUrl" TEXT NULL,
     "OpeningTime" TEXT NOT NULL,
@@ -190,7 +188,6 @@ CREATE TABLE "UserTokens" (
     "Purpose" TEXT NOT NULL,
     "Token" TEXT NOT NULL,
     "ExpiresAt" TEXT NOT NULL,
-    "CreatedAt" TEXT NOT NULL DEFAULT ((datetime('now'))),
     "ConsumedAt" TEXT NULL,
     CONSTRAINT "CK_UserTokens_Purpose" CHECK (Purpose IN ('PasswordReset')),
     CONSTRAINT "FK_UserTokens_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("UserId") ON DELETE CASCADE
@@ -228,12 +225,12 @@ CREATE TABLE "Visits" (
 );
 
 
-INSERT INTO "Branches" ("BranchId", "Address", "ClosingTime", "ImageUrl", "IsActive", "Latitude", "Longitude", "Name", "OpeningTime", "Phone")
-VALUES (1, 'Краснодар, ул. Красная, 32', '22:00:00', NULL, 1, NULL, NULL, 'Тихий час — Центр', '10:00:00', '+7 (861) 200-10-10');
+INSERT INTO "Branches" ("BranchId", "Address", "ClosingTime", "ImageUrl", "IsActive", "Name", "OpeningTime", "Phone")
+VALUES (1, 'Краснодар, ул. Красная, 32', '22:00:00', NULL, 1, 'Тихий час — Центр', '10:00:00', '+7 (861) 200-10-10');
 SELECT changes();
 
-INSERT INTO "Branches" ("BranchId", "Address", "ClosingTime", "ImageUrl", "IsActive", "Latitude", "Longitude", "Name", "OpeningTime", "Phone")
-VALUES (2, 'Краснодар, ул. Тургенева, 138', '21:00:00', NULL, 1, NULL, NULL, 'Тихий час — Фестивальный', '09:00:00', '+7 (861) 200-10-11');
+INSERT INTO "Branches" ("BranchId", "Address", "ClosingTime", "ImageUrl", "IsActive", "Name", "OpeningTime", "Phone")
+VALUES (2, 'Краснодар, ул. Тургенева, 138', '21:00:00', NULL, 1, 'Тихий час — Фестивальный', '09:00:00', '+7 (861) 200-10-11');
 SELECT changes();
 
 

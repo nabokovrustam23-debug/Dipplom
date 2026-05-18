@@ -39,8 +39,6 @@ public class EditModel : AppPageModel
         {
             Name = branch.Name,
             Address = branch.Address,
-            Latitude = branch.Latitude,
-            Longitude = branch.Longitude,
             Phone = branch.Phone,
             ExistingImageUrl = branch.ImageUrl,
             OpeningTime = branch.OpeningTime.ToString("HH:mm"),
@@ -79,8 +77,6 @@ public class EditModel : AppPageModel
 
             branch.Name = Input.Name.Trim();
             branch.Address = Input.Address.Trim();
-            branch.Latitude = Input.Latitude;
-            branch.Longitude = Input.Longitude;
             branch.Phone = string.IsNullOrWhiteSpace(Input.Phone) ? null : Input.Phone.Trim();
             if (!TimeOnly.TryParse(Input.OpeningTime, out var openTime) || !TimeOnly.TryParse(Input.ClosingTime, out var closeTime))
             {
@@ -122,9 +118,6 @@ public class EditModel : AppPageModel
 
         [RegularExpression(PhoneValidation.RussianPhonePattern, ErrorMessage = PhoneValidation.ErrorMessage)]
         public string? Phone { get; set; }
-
-        [Range(-90, 90, ErrorMessage = "Широта должна быть от -90 до 90.")] public double? Latitude { get; set; }
-        [Range(-180, 180, ErrorMessage = "Долгота должна быть от -180 до 180.")] public double? Longitude { get; set; }
 
         [Display(Name = "Фото филиала")]
         public IFormFile? ImageFile { get; set; }

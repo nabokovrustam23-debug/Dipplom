@@ -116,7 +116,6 @@ public sealed class UserTokenConfiguration : IEntityTypeConfiguration<UserToken>
         b.HasKey(x => x.TokenId);
         b.Property(x => x.Purpose).IsRequired();
         b.Property(x => x.Token).IsRequired();
-        b.Property(x => x.CreatedAt).HasDefaultValueSql("(datetime('now'))");
 
         b.HasIndex(x => x.Token).IsUnique();
         b.HasIndex(x => new { x.UserId, x.Purpose })

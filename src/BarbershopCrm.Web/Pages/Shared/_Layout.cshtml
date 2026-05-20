@@ -41,13 +41,9 @@
                         <a asp-page="/Lead/Index" class="app-nav__link app-nav__link--primary">Записаться</a>
                     }
 
-                    @if (current is not null && current.RoleCode == RoleCode.Owner)
+                    @if (current is not null && current.RoleCode is RoleCode.Owner or RoleCode.Admin)
                     {
-                        <a asp-page="/Owner/Branches/Index" class="app-nav__link nav-manage">Управление</a>
-                    }
-                    else if (current is not null && current.RoleCode == RoleCode.Admin)
-                    {
-                        <a asp-page="/Masters/Manage" class="app-nav__link nav-manage">Управление</a>
+                        <a asp-page="/Admin/Schedule/Index" class="app-nav__link nav-manage">Управление</a>
                     }
                     else if (current is not null && current.RoleCode == RoleCode.Master)
                     {

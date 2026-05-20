@@ -90,12 +90,10 @@ CREATE TABLE "Users" (
     "PasswordHash" TEXT NOT NULL,
     "PasswordSalt" TEXT NOT NULL,
     "PasswordIterations" INTEGER NOT NULL DEFAULT 100000,
-    "IsEmailConfirmed" INTEGER NOT NULL,
     "IsActive" INTEGER NOT NULL DEFAULT 1,
     "CreatedAt" TEXT NOT NULL DEFAULT ((datetime('now'))),
     "LastLoginAt" TEXT NULL,
     CONSTRAINT "CK_Users_IsActive" CHECK (IsActive IN (0,1)),
-    CONSTRAINT "CK_Users_IsEmailConfirmed" CHECK (IsEmailConfirmed IN (0,1)),
     CONSTRAINT "FK_Users_Branches_BranchId" FOREIGN KEY ("BranchId") REFERENCES "Branches" ("BranchId") ON DELETE RESTRICT,
     CONSTRAINT "FK_Users_Persona_PersonaId" FOREIGN KEY ("PersonaId") REFERENCES "Persona" ("PersonaId") ON DELETE RESTRICT,
     CONSTRAINT "FK_Users_Roles_RoleId" FOREIGN KEY ("RoleId") REFERENCES "Roles" ("RoleId") ON DELETE RESTRICT

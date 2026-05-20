@@ -7,26 +7,53 @@
 
 <partial name="_ManagementTabs" />
 
-<section class="card">
-    <div class="card__header">
-        <h1>Аналитика — @(Model.Snapshot?.BranchName ?? "вся сеть")</h1>
-        <div class="card__header-actions">
-            <a asp-page="/Owner/Analytics/Clients"
-               asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
-               asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
-               asp-route-branchid="@Model.BranchId"
-                class="btn btn--primary"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Аналитика клиентов</a>
-            <a asp-page="/Owner/Analytics/Compare"
-               asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
-               asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
-               class="btn btn--outline">Сравнить филиалы</a>
-        </div>
+<!-- Modernized header -->
+<section class="analytics-header">
+    <div class="analytics-header__content">
+        <h2>Аналитика — @(Model.Snapshot?.BranchName ?? "вся сеть")</h2>
+        <p class="analytics-header__subtitle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>@(Model.Snapshot?.BranchName ?? "Все филиалы")</span>
+        </p>
     </div>
+    <div class="management-header__actions">
+        <a asp-page="/Owner/Analytics/Clients"
+           asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
+           asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
+           asp-route-branchid="@Model.BranchId"
+           class="btn btn--primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Аналитика клиентов
+        </a>
+        <a asp-page="/Owner/Analytics/Compare"
+           asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
+           asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
+           class="btn btn--outline">Сравнить филиалы</a>
+    </div>
+</section>
 
-    <form method="get" class="form-row" id="analyticsFilterForm">
-        <div class="form-group">
-            <label for="BranchId">Филиал</label>
-            <select id="BranchId" name="BranchId" class="input">
+<!-- Modernized filters card -->
+<section class="analytics-filters-card">
+    <div class="analytics-filters-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <h3>Период анализа</h3>
+    </div>
+    <form method="get" class="analytics-filters">
+        <div class="filter-group">
+            <label for="BranchId">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                </svg>
+                Филиал
+            </label>
+            <select id="BranchId" name="BranchId" class="input input--filter">
                 <option value="">Вся сеть</option>
                 @foreach (var b in Model.BranchOptions)
                 {
@@ -34,44 +61,84 @@
                 }
             </select>
         </div>
-        <div class="form-group">
-            <label for="From">С</label>
-            <input id="From" name="From" type="date" class="input" value="@Model.FromValue.ToString("yyyy-MM-dd")" />
+        <div class="filter-group">
+            <label for="From">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Дата с
+            </label>
+            <input id="From" name="From" type="date" class="input input--filter" value="@Model.FromValue.ToString("yyyy-MM-dd")" />
         </div>
-        <div class="form-group">
-            <label for="To">По</label>
-            <input id="To" name="To" type="date" class="input" value="@Model.ToValue.ToString("yyyy-MM-dd")" />
+        <div class="filter-group">
+            <label for="To">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Дата по
+            </label>
+            <input id="To" name="To" type="date" class="input input--filter" value="@Model.ToValue.ToString("yyyy-MM-dd")" />
         </div>
-        <div class="form-actions">
-            <button type="submit" class="btn btn--primary">Применить</button>
-            <a asp-page="/Owner/Analytics/Index" class="btn btn--outline">Сбросить</a>
+        <div class="filter-actions">
+            <button type="submit" class="btn btn--primary btn--filter">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Применить
+            </button>
+            <a asp-page="/Owner/Analytics/Index" class="btn btn--outline btn--filter">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+                Сбросить
+            </a>
         </div>
     </form>
 </section>
 
-<section class="card export-card">
-    <div class="export-card__body">
-        <div class="export-card__icon" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
-        <div class="export-card__text">
-            <h2 class="export-card__title">Журнал записей в CSV</h2>
-            <p class="export-card__desc">
-                Полный список записей
-                @(Model.Snapshot?.BranchName is { Length: > 0 } b ? $"филиала «{b}»" : "по всей сети")
-                за период
-                <strong>@Model.FromValue.ToString("dd.MM.yyyy") — @Model.ToValue.ToString("dd.MM.yyyy")</strong>:
-                дата и время, мастер, услуга, клиент, статус, стоимость, итог визита.
-            </p>
-            <p class="export-card__hint muted">
-                Файл сохраняется в кодировке UTF-8 с BOM и разделителем «;» — Excel в русской локали раскрывает его по колонкам автоматически.
-            </p>
-        </div>
-        <a asp-page="/Owner/Analytics/Index" asp-page-handler="Export"
-           asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
-           asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
-           asp-route-branchid="@Model.BranchId"
-           class="btn btn--primary export-card__btn">Скачать .csv</a>
+<!-- Modernized export banner -->
+<div class="export-banner">
+    <div class="export-banner__icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
     </div>
-</section>
+    <div class="export-banner__content">
+        <h3 class="export-banner__title">Экспорт данных в CSV</h3>
+        <p class="export-banner__desc">
+            Полный журнал записей за период <strong>@Model.FromValue.ToString("dd.MM.yyyy") — @Model.ToValue.ToString("dd.MM.yyyy")</strong>
+        </p>
+        <p class="export-banner__hint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            UTF-8 с BOM, разделитель «;» — автоматически открывается в Excel
+        </p>
+    </div>
+    <a asp-page="/Owner/Analytics/Index" asp-page-handler="Export"
+       asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
+       asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
+       asp-route-branchid="@Model.BranchId"
+       class="export-banner__btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Скачать CSV
+    </a>
+</div>
 
 @if (Model.Snapshot is not null)
 {

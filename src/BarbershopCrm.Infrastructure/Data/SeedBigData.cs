@@ -59,7 +59,6 @@ public static class SeedBigData
                 PasswordHash = hash.HashBase64,
                 PasswordSalt = hash.SaltBase64,
                 PasswordIterations = hash.Iterations,
-                IsEmailConfirmed = true,
                 IsActive = true,
                 CreatedAt = now,
             };

@@ -55,7 +55,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         b.ToTable("Users", t =>
         {
             t.HasCheckConstraint("CK_Users_IsActive", "IsActive IN (0,1)");
-            t.HasCheckConstraint("CK_Users_IsEmailConfirmed", "IsEmailConfirmed IN (0,1)");
         });
 
         b.HasKey(x => x.UserId);

@@ -3,6 +3,7 @@ using System;
 using BarbershopCrm.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BarbershopCrm.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260518224710_RemoveIsEmailConfirmed")]
+    partial class RemoveIsEmailConfirmed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
@@ -198,6 +201,34 @@ namespace BarbershopCrm.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Clients", (string)null);
+                });
+
+            modelBuilder.Entity("BarbershopCrm.Domain.Entities.ConsentLogEntry", b =>
+                {
+                    b.Property<int>("ConsentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AcceptedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("(datetime('now'))");
+
+                    b.Property<string>("ConsentType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PersonaId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ConsentId");
+
+                    b.HasIndex("PersonaId");
+
+                    b.ToTable("ConsentLog", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ConsentLog_Type", "ConsentType IN ('PersonalData','Marketing')");
+                        });
                 });
 
             modelBuilder.Entity("BarbershopCrm.Domain.Entities.Lead", b =>
@@ -754,6 +785,17 @@ namespace BarbershopCrm.Infrastructure.Migrations
                     b.HasOne("BarbershopCrm.Domain.Entities.Persona", "Persona")
                         .WithOne("Client")
                         .HasForeignKey("BarbershopCrm.Domain.Entities.Client", "PersonaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Persona");
+                });
+
+            modelBuilder.Entity("BarbershopCrm.Domain.Entities.ConsentLogEntry", b =>
+                {
+                    b.HasOne("BarbershopCrm.Domain.Entities.Persona", "Persona")
+                        .WithMany()
+                        .HasForeignKey("PersonaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

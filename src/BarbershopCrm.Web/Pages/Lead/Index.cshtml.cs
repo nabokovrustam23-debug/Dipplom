@@ -90,16 +90,6 @@ public class IndexModel : AppPageModel
             CreatedAt = DateTime.UtcNow,
         };
         _db.Leads.Add(lead);
-
-        if (Current is not null)
-        {
-            _db.ConsentLog.Add(new ConsentLogEntry
-            {
-                PersonaId = Current.PersonaId,
-                ConsentType = "PersonalData",
-                AcceptedAt = DateTime.UtcNow,
-            });
-        }
         await _db.SaveChangesAsync(ct);
 
         TempData["Success"] = "Заявка принята. Мы свяжемся с вами в ближайшее время.";

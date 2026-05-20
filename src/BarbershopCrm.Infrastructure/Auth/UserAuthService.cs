@@ -71,7 +71,6 @@ public sealed class UserAuthService : IUserAuthService
             PasswordHash = hash.HashBase64,
             PasswordSalt = hash.SaltBase64,
             PasswordIterations = hash.Iterations,
-            IsEmailConfirmed = true,
             IsActive = true,
             CreatedAt = now,
         };
@@ -190,7 +189,6 @@ public sealed class UserAuthService : IUserAuthService
                 MiddleName = s.User.Persona.MiddleName,
                 RoleCode = s.User.Role.Code,
                 s.User.BranchId,
-                s.User.IsEmailConfirmed,
             })
             .FirstOrDefaultAsync(ct);
 
@@ -213,7 +211,6 @@ public sealed class UserAuthService : IUserAuthService
             ShortName: shortName,
             RoleCode: data.RoleCode,
             BranchId: data.BranchId,
-            IsEmailConfirmed: data.IsEmailConfirmed,
             SessionId: data.SessionId);
     }
 

@@ -45,24 +45,4 @@ public sealed class LeadConfiguration : IEntityTypeConfiguration<Lead>
     }
 }
 
-public sealed class ConsentLogConfiguration : IEntityTypeConfiguration<ConsentLogEntry>
-{
-    public void Configure(EntityTypeBuilder<ConsentLogEntry> b)
-    {
-        b.ToTable("ConsentLog", t =>
-            t.HasCheckConstraint(
-                "CK_ConsentLog_Type",
-                $"ConsentType IN ('{ConsentType.PersonalData}','{ConsentType.Marketing}')"));
-
-        b.HasKey(x => x.ConsentId);
-        b.Property(x => x.ConsentType).IsRequired();
-        b.Property(x => x.AcceptedAt).HasDefaultValueSql("(datetime('now'))");
-
-        b.HasOne(x => x.Persona)
-            .WithMany()
-            .HasForeignKey(x => x.PersonaId)
-            .OnDelete(DeleteBehavior.Restrict);
-    }
-}
-
 

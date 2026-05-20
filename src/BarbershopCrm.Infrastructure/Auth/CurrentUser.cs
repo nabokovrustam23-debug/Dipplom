@@ -13,5 +13,4 @@ public sealed record CurrentUser(
     string ShortName,
     string RoleCode,
     int? BranchId,
-    bool IsEmailConfirmed,
     int SessionId);

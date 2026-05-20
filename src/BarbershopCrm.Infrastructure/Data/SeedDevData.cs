@@ -43,7 +43,7 @@ public static class SeedDevData
         var branch2 = branchIds[1];
 
         var hash = hasher.Hash(TestPassword);
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
 
         // ---- Owner ---------------------------------------------------------
         Add(db, hash, now, ownerRoleId, branchId: null,
@@ -177,7 +177,7 @@ public static class SeedDevData
             PreferredBranchId = firstBranch,
             Comment = "Хочу записаться, перезвоните пожалуйста.",
             Status = LeadStatus.New,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
         });
         await db.SaveChangesAsync(ct);
         logger.LogInformation("SeedDevData: seeded sample leads");
@@ -213,7 +213,7 @@ public static class SeedDevData
             .ToListAsync(ct);
         if (masters.Count == 0) return;
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var today = DateOnly.FromDateTime(DateTime.Now.Date);
         // Seed 14 days starting 7 days ago so the demo also covers history.
         var start = today.AddDays(-7);
         var end = today.AddDays(14);

@@ -1,4 +1,4 @@
-п»їusing System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -50,7 +50,7 @@ namespace BarbershopCrm.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Persona", x => x.PersonaId);
-                    table.CheckConstraint("CK_Persona_Gender", "Gender IS NULL OR Gender IN ('Рњ','Р–')");
+                    table.CheckConstraint("CK_Persona_Gender", "Gender IS NULL OR Gender IN ('М','Ж')");
                 });
 
             migrationBuilder.CreateTable(
@@ -501,8 +501,8 @@ namespace BarbershopCrm.Infrastructure.Migrations
                 columns: new[] { "BranchId", "Address", "ClosingTime", "IsActive", "Name", "OpeningTime", "Phone" },
                 values: new object[,]
                 {
-                    { 1, "РљСЂР°СЃРЅРѕРґР°СЂ, СѓР». РљСЂР°СЃРЅР°СЏ, 32", new TimeOnly(22, 0, 0), true, "РўРёС…РёР№ С‡Р°СЃ вЂ” Р¦РµРЅС‚СЂ", new TimeOnly(10, 0, 0), "+7 (861) 200-10-10" },
-                    { 2, "РљСЂР°СЃРЅРѕРґР°СЂ, СѓР». РўСѓСЂРіРµРЅРµРІР°, 138", new TimeOnly(21, 0, 0), true, "РўРёС…РёР№ С‡Р°СЃ вЂ” Р¤РµСЃС‚РёРІР°Р»СЊРЅС‹Р№", new TimeOnly(9, 0, 0), "+7 (861) 200-10-11" }
+                    { 1, "Краснодар, ул. Красная, 32", new TimeOnly(22, 0, 0), true, "Тихий час — Центр", new TimeOnly(10, 0, 0), "+7 (861) 200-10-10" },
+                    { 2, "Краснодар, ул. Тургенева, 138", new TimeOnly(21, 0, 0), true, "Тихий час — Фестивальный", new TimeOnly(9, 0, 0), "+7 (861) 200-10-11" }
                 });
 
             migrationBuilder.InsertData(
@@ -510,10 +510,10 @@ namespace BarbershopCrm.Infrastructure.Migrations
                 columns: new[] { "RoleId", "Code", "Name" },
                 values: new object[,]
                 {
-                    { 1, "Owner", "Р’Р»Р°РґРµР»РµС† СЃРµС‚Рё" },
-                    { 2, "Admin", "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ С„РёР»РёР°Р»Р°" },
-                    { 3, "Master", "РњР°СЃС‚РµСЂ" },
-                    { 4, "Client", "РљР»РёРµРЅС‚" }
+                    { 1, "Owner", "Владелец сети" },
+                    { 2, "Admin", "Администратор филиала" },
+                    { 3, "Master", "Мастер" },
+                    { 4, "Client", "Клиент" }
                 });
 
             migrationBuilder.InsertData(
@@ -521,11 +521,11 @@ namespace BarbershopCrm.Infrastructure.Migrations
                 columns: new[] { "ServiceId", "Description", "DurationMinutes", "IsActive", "Name", "Price" },
                 values: new object[,]
                 {
-                    { 1, "РљР»Р°СЃСЃРёС‡РµСЃРєР°СЏ РјСѓР¶СЃРєР°СЏ СЃС‚СЂРёР¶РєР° РЅРѕР¶РЅРёС†Р°РјРё Рё РјР°С€РёРЅРєРѕР№.", 60, true, "РњСѓР¶СЃРєР°СЏ СЃС‚СЂРёР¶РєР°", 1500m },
-                    { 2, "РљРѕСЂРѕС‚РєР°СЏ СЃС‚СЂРёР¶РєР° РѕРґРЅРѕР№ РґР»РёРЅРѕР№.", 30, true, "РЎС‚СЂРёР¶РєР° РјР°С€РёРЅРєРѕР№", 800m },
-                    { 3, "РљР»Р°СЃСЃРёС‡РµСЃРєРѕРµ Р±СЂРёС‚СЊС‘ СЃ РіРѕСЂСЏС‡РёРј РїРѕР»РѕС‚РµРЅС†РµРј.", 45, true, "Р‘СЂРёС‚СЊС‘ РѕРїР°СЃРЅРѕР№ Р±СЂРёС‚РІРѕР№", 1200m },
-                    { 4, "РњРѕРґРµР»РёСЂРѕРІР°РЅРёРµ РєРѕРЅС‚СѓСЂР° Рё РїРѕРґСЂР°РІРЅРёРІР°РЅРёРµ Р±РѕСЂРѕРґС‹.", 30, true, "РЎС‚СЂРёР¶РєР° Р±РѕСЂРѕРґС‹", 700m },
-                    { 5, "РўРѕРЅРёСЂРѕРІР°РЅРёРµ СЃРµРґРёРЅС‹ РІ Р±РѕСЂРѕРґРµ.", 30, true, "РљР°РјСѓС„Р»СЏР¶ Р±РѕСЂРѕРґС‹", 900m }
+                    { 1, "Классическая мужская стрижка ножницами и машинкой.", 60, true, "Мужская стрижка", 1500m },
+                    { 2, "Короткая стрижка одной длиной.", 30, true, "Стрижка машинкой", 800m },
+                    { 3, "Классическое бритьё с горячим полотенцем.", 45, true, "Бритьё опасной бритвой", 1200m },
+                    { 4, "Моделирование контура и подравнивание бороды.", 30, true, "Стрижка бороды", 700m },
+                    { 5, "Тонирование седины в бороде.", 30, true, "Камуфляж бороды", 900m }
                 });
 
             migrationBuilder.CreateIndex(

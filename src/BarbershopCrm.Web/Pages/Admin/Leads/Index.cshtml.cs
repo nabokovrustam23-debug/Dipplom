@@ -106,7 +106,7 @@ public class IndexModel : AppPageModel
         }
         lead.Status = LeadStatus.Rejected;
         lead.ProcessedByUserId = Current.UserId;
-        lead.ProcessedAt = DateTime.UtcNow;
+        lead.ProcessedAt = DateTime.Now;
         await _db.SaveChangesAsync(ct);
         TempData["Success"] = "Заявка отклонена.";
         return RedirectToPage(new { Status, Search, SortBy, DateFrom, DateTo, CurrentPage });
@@ -124,7 +124,7 @@ public class IndexModel : AppPageModel
         }
         lead.Status = LeadStatus.Done;
         lead.ProcessedByUserId = Current.UserId;
-        lead.ProcessedAt = DateTime.UtcNow;
+        lead.ProcessedAt = DateTime.Now;
         await _db.SaveChangesAsync(ct);
         TempData["Success"] = "Заявка закрыта без записи.";
         return RedirectToPage(new { Status, Search, SortBy, DateFrom, DateTo, CurrentPage });

@@ -11,5 +11,5 @@ public class UserToken
 
     public User User { get; set; } = null!;
 
-    public bool IsConsumable => ConsumedAt is null && ExpiresAt > DateTime.UtcNow;
+    public bool IsConsumable => ConsumedAt is null && ExpiresAt > DateTime.Now;
 }

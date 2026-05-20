@@ -50,7 +50,7 @@ public class IndexModel : AppPageModel
             .OrderByDescending(b => b.StartDateTime)
             .ToListAsync(ct);
 
-        var nowUtc = DateTime.UtcNow;
+        var nowUtc = DateTime.Now;
         Active = all
             .Where(b => (b.Status == BookingStatus.Created || b.Status == BookingStatus.Confirmed) && b.StartDateTime > nowUtc)
             .OrderBy(b => b.StartDateTime)

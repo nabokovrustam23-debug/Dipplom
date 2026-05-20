@@ -20,7 +20,7 @@ public static class ScheduleAgendaRules
     /// <summary>Завершение и «не пришёл» — только с момента начала записи (UTC).</summary>
     public static bool CanCompleteOrNoShow(Booking b) =>
         (b.Status is BookingStatus.Created or BookingStatus.Confirmed)
-        && DateTime.UtcNow >= b.StartDateTime;
+        && DateTime.Now >= b.StartDateTime;
 }
 
 public sealed class ScheduleAgendaViewModel

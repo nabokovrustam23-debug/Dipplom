@@ -87,7 +87,7 @@ public class IndexModel : AppPageModel
             PreferredBranchId = Input.PreferredBranchId,
             Comment = string.IsNullOrWhiteSpace(Input.Comment) ? null : Input.Comment.Trim(),
             Status = LeadStatus.New,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
         };
         _db.Leads.Add(lead);
         await _db.SaveChangesAsync(ct);

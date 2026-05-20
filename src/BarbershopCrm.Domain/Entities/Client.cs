@@ -6,7 +6,7 @@ public class Client
     public int PersonaId { get; set; }
     public string? Source { get; set; }
     public string? Notes { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public Persona Persona { get; set; } = null!;
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();

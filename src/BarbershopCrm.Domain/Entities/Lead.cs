@@ -11,7 +11,7 @@ public class Lead
     public string Status { get; set; } = Domain.Enums.LeadStatus.New;
     public int? CreatedBookingId { get; set; }
     public int? ProcessedByUserId { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? ProcessedAt { get; set; }
 
     public Persona? Persona { get; set; }

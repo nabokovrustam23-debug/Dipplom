@@ -443,7 +443,7 @@ public sealed class AnalyticsService : IAnalyticsService
                     .Select(sg => sg.Key)
                     .FirstOrDefault();
 
-                var daysSinceLastVisit = (int)(DateTime.UtcNow - lastVisit.CompletedAt).TotalDays;
+                var daysSinceLastVisit = (int)(DateTime.Now - lastVisit.CompletedAt).TotalDays;
 
                 return new
                 {

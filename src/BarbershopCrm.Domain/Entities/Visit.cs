@@ -6,7 +6,7 @@ public class Visit
     public int BookingId { get; set; }
     public decimal TotalAmount { get; set; }
     public string? MasterNotes { get; set; }
-    public DateTime CompletedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CompletedAt { get; set; } = DateTime.Now;
 
     public Booking Booking { get; set; } = null!;
 }

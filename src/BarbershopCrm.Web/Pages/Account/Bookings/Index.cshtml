@@ -121,7 +121,19 @@
                             </div>
                             
                             <div class="booking-card__price">
-                                <span class="tnum">@b.PriceSnapshot.ToString("0") ₽</span>
+                                @{
+                                    var bFinal = b.FinalPrice;
+                                }
+                                @if (b.LoyaltyDiscountPercent > 0)
+                                {
+                                    <span class="tnum" style="text-decoration: line-through; color: var(--color-text-muted);">@b.PriceSnapshot.ToString("0") ₽</span>
+                                    <span class="tnum" style="color: var(--color-success); font-weight: 600;">@bFinal.ToString("0") ₽</span>
+                                    <span class="schedule-agenda__badge schedule-agenda__badge--discount">-@b.LoyaltyDiscountPercent%</span>
+                                }
+                                else
+                                {
+                                    <span class="tnum">@b.PriceSnapshot.ToString("0") ₽</span>
+                                }
                             </div>
                             @if (b.Status == BookingStatus.Created)
                             {
@@ -230,7 +242,19 @@
                             </div>
                             
                             <div class="booking-card__price">
-                                <span class="tnum">@b.PriceSnapshot.ToString("0") ₽</span>
+                                @{
+                                    var bFinal = b.FinalPrice;
+                                }
+                                @if (b.LoyaltyDiscountPercent > 0)
+                                {
+                                    <span class="tnum" style="text-decoration: line-through; color: var(--color-text-muted);">@b.PriceSnapshot.ToString("0") ₽</span>
+                                    <span class="tnum" style="color: var(--color-success); font-weight: 600;">@bFinal.ToString("0") ₽</span>
+                                    <span class="schedule-agenda__badge schedule-agenda__badge--discount">-@b.LoyaltyDiscountPercent%</span>
+                                }
+                                else
+                                {
+                                    <span class="tnum">@b.PriceSnapshot.ToString("0") ₽</span>
+                                }
                             </div>
                         </div>
                     </article>

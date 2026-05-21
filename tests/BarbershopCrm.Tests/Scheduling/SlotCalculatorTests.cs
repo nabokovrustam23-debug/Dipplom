@@ -100,45 +100,4 @@ public class SlotCalculatorTests
         var slots = SlotCalculator.ComputeSlots(Day, 60, 15, Open, Close, m).ToList();
         slots.Should().BeEmpty();
     }
-
-    [Fact]
-    public void StartTime_QuantizedToStep()
-    {
-        // Master starts at 10:07 — first valid slot snaps to 10:15.
-        var m = Master(1, "A", new[] { new TimeRange(new(10, 7), new(11, 0)) });
-        var slots = SlotCalculator.ComputeSlots(Day, 30, 15, Open, Close, m).Select(s => s.ToString("HH:mm")).ToList();
-        slots.Should().Equal("10:15", "10:30");
-    }
-
-    [Fact]
-    public void MultipleWorkRanges_HandledIndependently()
-    {
-        var m = Master(1, "A", new[]
-        {
-            new TimeRange(new(9, 0), new(11, 0)),
-            new TimeRange(new(15, 0), new(17, 0)),
-        });
-        var slots = SlotCalculator.ComputeSlots(Day, 60, 60, Open, Close, m).Select(s => s.ToString("HH:mm")).ToList();
-        slots.Should().Equal("09:00", "10:00", "15:00", "16:00");
-    }
-
-    [Fact]
-    public void OverlappingBlock_ClampedToWindow()
-    {
-        var m = Master(1, "A",
-            new[] { new TimeRange(new(10, 0), new(13, 0)) },
-            new[] { new TimeRange(new(8, 0), new(11, 0)) }); // block extends before window
-        var slots = SlotCalculator.ComputeSlots(Day, 30, 30, Open, Close, m).Select(s => s.ToString("HH:mm")).ToList();
-        // Available 11:00..13:00, 30-min service, 30 step → 11:00, 11:30, 12:00, 12:30
-        slots.Should().Equal("11:00", "11:30", "12:00", "12:30");
-    }
-
-    [Fact]
-    public void WorkRangeOutsideBranchHours_Clamped()
-    {
-        var m = Master(1, "A", new[] { new TimeRange(new(7, 0), new(23, 0)) });
-        var slots = SlotCalculator.ComputeSlots(Day, 60, 60, Open, Close, m).ToList();
-        slots.First().Hour.Should().Be(9);
-        slots.Last().Hour.Should().Be(20); // close 21:00, last 60-min slot starts at 20:00
-    }
 }

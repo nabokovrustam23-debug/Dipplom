@@ -3,6 +3,7 @@ using BarbershopCrm.Domain.Enums;
 using BarbershopCrm.Infrastructure.Auth;
 using BarbershopCrm.Infrastructure.Bookings;
 using BarbershopCrm.Infrastructure.Data;
+using BarbershopCrm.Infrastructure.Loyalty;
 using BarbershopCrm.Infrastructure.Scheduling;
 using BarbershopCrm.Web.Auth;
 using Microsoft.AspNetCore.Mvc;
@@ -18,13 +19,15 @@ public class NewModel : AppPageModel
     private readonly AppDbContext _db;
     private readonly ISlotService _slotService;
     private readonly IBookingService _bookings;
+    private readonly ILoyaltyService _loyalty;
 
-    public NewModel(ICurrentUserAccessor cu, AppDbContext db, ISlotService slotService, IBookingService bookings)
+    public NewModel(ICurrentUserAccessor cu, AppDbContext db, ISlotService slotService, IBookingService bookings, ILoyaltyService loyalty)
         : base(cu)
     {
         _db = db;
         _slotService = slotService;
         _bookings = bookings;
+        _loyalty = loyalty;
     }
 
     [BindProperty(SupportsGet = true)] public int? BranchId { get; set; }
@@ -39,6 +42,7 @@ public class NewModel : AppPageModel
     public List<MasterRow> Masters { get; private set; } = new();
     public List<SlotDto> Slots { get; private set; } = new();
     public DateOnly DateValue { get; private set; }
+    public ClientLoyaltyInfo? Loyalty { get; private set; }
 
     public sealed record MasterRow(int MasterId, string FullName);
 
@@ -83,6 +87,16 @@ public class NewModel : AppPageModel
             Slots = (await _slotService.GetFreeSlotsAsync(BranchId.Value, ServiceId.Value, DateValue, MasterId, ct))
                 .Where(s => s.StartDateTime > DateTime.Now)
                 .ToList();
+
+            if (Current is not null)
+            {
+                var clientId = await _db.Clients.AsNoTracking()
+                    .Where(c => c.PersonaId == Current.PersonaId)
+                    .Select(c => (int?)c.ClientId)
+                    .FirstOrDefaultAsync(ct);
+                if (clientId.HasValue)
+                    Loyalty = await _loyalty.GetClientLoyaltyInfoAsync(clientId.Value, ct);
+            }
         }
 
         return Page();

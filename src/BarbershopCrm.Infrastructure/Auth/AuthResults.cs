@@ -20,7 +20,7 @@ public enum RegistrationFailureReason
 
 public abstract record RegistrationResult
 {
-    public sealed record Success(int UserId, string EmailVerificationToken) : RegistrationResult;
+    public sealed record Success(int UserId) : RegistrationResult;
     public sealed record Failure(RegistrationFailureReason Reason) : RegistrationResult;
 }
 

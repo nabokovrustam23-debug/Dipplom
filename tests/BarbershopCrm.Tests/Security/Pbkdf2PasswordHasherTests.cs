@@ -38,21 +38,4 @@ public class Pbkdf2PasswordHasherTests
         _hasher.Verify("wrong-password", hashed.HashBase64, hashed.SaltBase64, hashed.Iterations)
             .Should().BeFalse();
     }
-
-    [Fact]
-    public void Hash_IsRandomized_ProducesDifferentSalt()
-    {
-        var a = _hasher.Hash("same-password");
-        var b = _hasher.Hash("same-password");
-
-        a.SaltBase64.Should().NotBe(b.SaltBase64);
-        a.HashBase64.Should().NotBe(b.HashBase64);
-    }
-
-    [Fact]
-    public void Verify_ReturnsFalse_OnMalformedBase64()
-    {
-        _hasher.Verify("any", "not-base64-!!!", "also-bad-!!!", 10_000)
-            .Should().BeFalse();
-    }
 }

@@ -55,7 +55,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         b.ToTable("Users", t =>
         {
             t.HasCheckConstraint("CK_Users_IsActive", "IsActive IN (0,1)");
-            t.HasCheckConstraint("CK_Users_IsEmailConfirmed", "IsEmailConfirmed IN (0,1)");
         });
 
         b.HasKey(x => x.UserId);
@@ -111,12 +110,11 @@ public sealed class UserTokenConfiguration : IEntityTypeConfiguration<UserToken>
     {
         b.ToTable("UserTokens", t =>
             t.HasCheckConstraint("CK_UserTokens_Purpose",
-                $"Purpose IN ('{UserTokenPurpose.EmailVerification}','{UserTokenPurpose.PasswordReset}')"));
+                $"Purpose IN ('{UserTokenPurpose.PasswordReset}')"));
 
         b.HasKey(x => x.TokenId);
         b.Property(x => x.Purpose).IsRequired();
         b.Property(x => x.Token).IsRequired();
-        b.Property(x => x.CreatedAt).HasDefaultValueSql("(datetime('now'))");
 
         b.HasIndex(x => x.Token).IsUnique();
         b.HasIndex(x => new { x.UserId, x.Purpose })

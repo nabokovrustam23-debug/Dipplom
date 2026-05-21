@@ -1,82 +1,97 @@
 @page
 @model BarbershopCrm.Web.Pages.Branches.IndexModel
 @{
-    ViewData["Title"] = "Филиалы";
+    ViewData["Title"] = "Наши филиалы — Тихого Часа";
 }
 
-<header class="page-header">
-    <h1>Филиалы</h1>
-    <p class="muted">Все действующие филиалы сети «Тихий час».</p>
-</header>
+<section class="branches-catalog-section animate-fade-in">
+    
+    <div class="catalog-header">
+        <div class="catalog-header__content">
+            <span class="catalog-header__badge">Атмосфера и локации</span>
+            <h2>Филиалы «Тихого Часа»</h2>
+            <p class="catalog-header__subtitle">Выберите удобную для вас точку нашей сети. Каждое пространство оборудовано по высшему стандарту комфорта.</p>
+        </div>
+    </div>
 
-@if (Model.Branches.Count == 0)
-{
-    <p class="muted">Активных филиалов пока нет.</p>
-}
-else
-{
-    <div class="grid-3" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); margin-top: var(--space-4);">
-        @foreach (var branch in Model.Branches)
-        {
-            <article class="card branch-card-enhanced">
-                @if (!string.IsNullOrEmpty(branch.ImageUrl))
-                {
-                    <a asp-page="/Branches/Details" asp-route-id="@branch.BranchId" tabindex="-1" aria-hidden="true">
-                        <img class="branch-card-enhanced__image" src="@branch.ImageUrl" alt="" loading="lazy" />
-                    </a>
-                }
-                else
-                {
-                    <div class="branch-card-enhanced__image branch-card-enhanced__image--placeholder" aria-hidden="true">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                        </svg>
-                    </div>
-                }
-                
-                <div class="branch-card-enhanced__content">
-                    <h3 class="branch-card-enhanced__title">
-                        <a asp-page="/Branches/Details" asp-route-id="@branch.BranchId">@branch.Name</a>
-                    </h3>
+    @if (Model.Branches.Count == 0)
+    {
+        <div class="premium-empty-state">
+            <div class="empty-state-illustration">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                </svg>
+            </div>
+            <h4>Локации не найдены</h4>
+            <p>На текущий момент в базе CRM отсутствуют зарегистрированные активные филиалы сети.</p>
+        </div>
+    }
+    else
+    {
+        <div class="services-premium-grid">
+            @foreach (var branch in Model.Branches)
+            {
+                <article class="service-display-card branch-display-card">
                     
-                    <div class="branch-card-enhanced__details">
-                        <div class="branch-card-enhanced__detail">
-                            <svg class="branch-card-enhanced__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                            </svg>
-                            <span>@branch.Address</span>
-                        </div>
-                        
-                        <div class="branch-card-enhanced__detail">
-                            <svg class="branch-card-enhanced__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            <span class="tnum">@branch.OpeningTime.ToString("HH:mm") – @branch.ClosingTime.ToString("HH:mm")</span>
-                        </div>
-                        
-                        @if (!string.IsNullOrWhiteSpace(branch.Phone))
+                    <div class="service-display-card__media">
+                        @if (!string.IsNullOrEmpty(branch.ImageUrl))
                         {
-                            <div class="branch-card-enhanced__detail">
-                                <svg class="branch-card-enhanced__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                                </svg>
-                                <a href="tel:@branch.Phone.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "")" class="tnum">@branch.Phone</a>
+                            <a asp-page="/Branches/Details" asp-route-id="@branch.BranchId" tabindex="-1" aria-hidden="true" class="media-link-container">
+                                <img class="service-image-fluid branch-image-cover" src="@branch.ImageUrl" alt="Филиал @branch.Name" loading="lazy" />
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="service-placeholder-media-box" aria-hidden="true">
+                                <img src="~/images/branch-placeholder.svg" alt="" class="placeholder-svg" style="width:56px; height:56px;" asp-append-version="true" />
                             </div>
                         }
+                        
+                        <div class="service-duration-badge branch-hours-badge">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span class="tnum">@branch.OpeningTime.ToString("HH:mm") — @branch.ClosingTime.ToString("HH:mm")</span>
+                        </div>
                     </div>
-                    
-                    <a asp-page="/Branches/Details" asp-route-id="@branch.BranchId" class="branch-card-enhanced__link">
-                        Подробнее
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                            <polyline points="12 5 19 12 12 19"></polyline>
-                        </svg>
-                    </a>
-                </div>
-            </article>
-        }
-    </div>
-}
+
+                    <div class="service-display-card__body">
+                        <div class="service-title-row">
+                            <h3 class="service-card-name">
+                                <a asp-page="/Branches/Details" asp-route-id="@branch.BranchId" class="branch-title-anchor">@branch.Name</a>
+                            </h3>
+                        </div>
+                        
+                        <div class="booking-details-stack branch-details-stack" style="margin: 1rem 0;">
+                            <div class="detail-inline-node">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="detail-icon-branch">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <span class="branch-address-text">@branch.Address</span>
+                            </div>
+                            
+                            @if (!string.IsNullOrWhiteSpace(branch.Phone))
+                            {
+                                <div class="detail-inline-node">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="detail-icon-master">
+                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                    </svg>
+                                    <a href="tel:@branch.Phone.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "")" class="member-phone-link tnum">@branch.Phone</a>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="branch-card-action-footer">
+                            <a asp-page="/Branches/Details" asp-route-id="@branch.BranchId" class="btn btn--outline-xs btn--with-icon">
+                                <span>Подробнее о филиале</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>

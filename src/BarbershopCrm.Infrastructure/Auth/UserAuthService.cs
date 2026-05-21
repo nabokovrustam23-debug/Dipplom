@@ -71,7 +71,6 @@ public sealed class UserAuthService : IUserAuthService
             PasswordHash = hash.HashBase64,
             PasswordSalt = hash.SaltBase64,
             PasswordIterations = hash.Iterations,
-            IsEmailConfirmed = false,
             IsActive = true,
             CreatedAt = now,
         };
@@ -83,27 +82,14 @@ public sealed class UserAuthService : IUserAuthService
             CreatedAt = now,
         };
 
-        var tokenString = _tokens.GenerateUrlSafeToken();
-        var emailToken = new UserToken
-        {
-            User = user,
-            Purpose = UserTokenPurpose.EmailVerification,
-            Token = tokenString,
-            ExpiresAt = now.AddHours(_options.EmailVerificationTokenLifetimeHours),
-            CreatedAt = now,
-        };
-
         _db.Persona.Add(persona);
         _db.Users.Add(user);
         _db.Clients.Add(client);
-        _db.UserTokens.Add(emailToken);
         await _db.SaveChangesAsync(ct);
 
-        _log.LogInformation(
-            "Registered client {UserId} ({Email}); email-verification token issued, expires {Expires:o}",
-            user.UserId, email, emailToken.ExpiresAt);
+        _log.LogInformation("Registered client {UserId} ({Email})", user.UserId, email);
 
-        return new RegistrationResult.Success(user.UserId, tokenString);
+        return new RegistrationResult.Success(user.UserId);
     }
 
     public async Task<LoginResult> LoginAsync(
@@ -203,7 +189,6 @@ public sealed class UserAuthService : IUserAuthService
                 MiddleName = s.User.Persona.MiddleName,
                 RoleCode = s.User.Role.Code,
                 s.User.BranchId,
-                s.User.IsEmailConfirmed,
             })
             .FirstOrDefaultAsync(ct);
 
@@ -226,7 +211,6 @@ public sealed class UserAuthService : IUserAuthService
             ShortName: shortName,
             RoleCode: data.RoleCode,
             BranchId: data.BranchId,
-            IsEmailConfirmed: data.IsEmailConfirmed,
             SessionId: data.SessionId);
     }
 
@@ -243,59 +227,6 @@ public sealed class UserAuthService : IUserAuthService
         if (string.IsNullOrEmpty(initials)) return last;
         if (string.IsNullOrEmpty(last)) return initials;
         return $"{last} {initials}";
-    }
-
-    public async Task<ConsumeTokenResult> ConfirmEmailAsync(string token, CancellationToken ct = default)
-    {
-        var (result, userToken) = await FindTokenAsync(token, UserTokenPurpose.EmailVerification, ct);
-        if (result is not null)
-            return result;
-
-        userToken!.ConsumedAt = _clock.GetUtcNow().UtcDateTime;
-        userToken.User.IsEmailConfirmed = true;
-        await _db.SaveChangesAsync(ct);
-
-        _log.LogInformation("Email confirmed for user {UserId}", userToken.UserId);
-        return new ConsumeTokenResult.Success(userToken.UserId);
-    }
-
-    public async Task<string?> IssueEmailVerificationTokenAsync(string email, CancellationToken ct = default)
-    {
-        var emailNorm = NormaliseEmail(email);
-        var user = await _db.Users
-            .AsTracking()
-            .FirstOrDefaultAsync(u => u.Login == emailNorm, ct);
-
-        if (user is null || user.IsEmailConfirmed || !user.IsActive)
-            return null;
-
-        // Invalidate any prior unconsumed verification tokens.
-        var now = _clock.GetUtcNow().UtcDateTime;
-        var prior = await _db.UserTokens
-            .AsTracking()
-            .Where(t => t.UserId == user.UserId
-                        && t.Purpose == UserTokenPurpose.EmailVerification
-                        && t.ConsumedAt == null
-                        && t.ExpiresAt > now)
-            .ToListAsync(ct);
-
-        foreach (var t in prior)
-            t.ConsumedAt = now;
-
-        var tokenString = _tokens.GenerateUrlSafeToken();
-        _db.UserTokens.Add(new UserToken
-        {
-            UserId = user.UserId,
-            Purpose = UserTokenPurpose.EmailVerification,
-            Token = tokenString,
-            ExpiresAt = now.AddHours(_options.EmailVerificationTokenLifetimeHours),
-            CreatedAt = now,
-        });
-
-        await _db.SaveChangesAsync(ct);
-
-        _log.LogInformation("Email-verification token re-issued for user {UserId}", user.UserId);
-        return tokenString;
     }
 
     public async Task<string?> IssuePasswordResetTokenAsync(string email, CancellationToken ct = default)
@@ -328,7 +259,6 @@ public sealed class UserAuthService : IUserAuthService
             Purpose = UserTokenPurpose.PasswordReset,
             Token = tokenString,
             ExpiresAt = now.AddHours(_options.PasswordResetTokenLifetimeHours),
-            CreatedAt = now,
         });
 
         await _db.SaveChangesAsync(ct);

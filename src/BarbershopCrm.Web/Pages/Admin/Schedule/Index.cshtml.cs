@@ -3,6 +3,7 @@ using BarbershopCrm.Domain.Enums;
 using BarbershopCrm.Infrastructure.Auth;
 using BarbershopCrm.Infrastructure.Bookings;
 using BarbershopCrm.Infrastructure.Data;
+using BarbershopCrm.Infrastructure.Scheduling;
 using BarbershopCrm.Web.Auth;
 using BarbershopCrm.Web.Pages.Shared;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +17,13 @@ public class IndexModel : AppPageModel
 {
     private readonly AppDbContext _db;
     private readonly IBookingService _service;
+    private readonly ITimelineService _timeline;
 
-    public IndexModel(AppDbContext db, ICurrentUserAccessor currentUser, IBookingService service) : base(currentUser)
+    public IndexModel(AppDbContext db, ICurrentUserAccessor currentUser, IBookingService service, ITimelineService timeline) : base(currentUser)
     {
         _db = db;
         _service = service;
+        _timeline = timeline;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -43,19 +46,6 @@ public class IndexModel : AppPageModel
 
     public ScheduleAgendaViewModel? Agenda { get; private set; }
 
-    public sealed record TimelineHour(TimeOnly Time, int RowIndex);
-
-    public sealed record TimelineEntry(
-        TimelineEntryKind Kind,
-        TimeOnly StartTime,
-        TimeOnly EndTime,
-        int RowStart,
-        int RowSpan,
-        Booking? Booking,
-        string? Label);
-
-    public enum TimelineEntryKind { Booking, Lunch, DayOff, Vacation, SickLeave }
-
     public sealed class CompleteInput
     {
         public int BookingId { get; set; }
@@ -63,9 +53,6 @@ public class IndexModel : AppPageModel
         [StringLength(500, ErrorMessage = "Комментарий слишком длинный (макс. 500 символов).")]
         public string? MasterNotes { get; set; }
     }
-
-    private const int MinutesPerRow = 15;
-    public int TotalRows => Math.Max(1, MinutesBetween(TimelineStart, TimelineEnd) / MinutesPerRow);
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -97,6 +84,8 @@ public class IndexModel : AppPageModel
         SyncRouteContextForPost();
         if (!ModelState.IsValid)
         {
+            var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            TempData["Error"] = $"Ошибка валидации данных: {errors}";
             await LoadPageDataAsync(ct);
             return Page();
         }
@@ -126,6 +115,17 @@ public class IndexModel : AppPageModel
 
     private void SyncRouteContextForPost()
     {
+        // Читаем BranchId из формы, если не установлен
+        if (!BranchId.HasValue && Request.Form.ContainsKey("BranchId"))
+        {
+            if (int.TryParse(Request.Form["BranchId"], out var branchId))
+                BranchId = branchId;
+        }
+
+        // Читаем Date из формы, если не установлен
+        if (string.IsNullOrWhiteSpace(Date) && Request.Form.ContainsKey("Date"))
+            Date = Request.Form["Date"];
+
         if (Current?.RoleCode == RoleCode.Admin && Current.BranchId.HasValue && !BranchId.HasValue)
             BranchId = Current.BranchId.Value;
 
@@ -190,7 +190,14 @@ public class IndexModel : AppPageModel
             .OrderBy(w => w.StartTime)
             .ToListAsync(ct);
 
-        BuildTimeline(bookings, schedule);
+        var result = _timeline.Build(bookings, schedule);
+        TimelineStart = result.TimelineStart;
+        TimelineEnd = result.TimelineEnd;
+        TimelineHours = result.TimelineHours;
+        EntriesByMaster = Masters.ToDictionary(m => m.MasterId, m =>
+            result.Entries.Where(e => e.MasterId == m.MasterId)
+                .OrderBy(e => e.StartTime).ToList());
+
         BuildAgenda();
     }
 
@@ -223,89 +230,6 @@ public class IndexModel : AppPageModel
             Masters = sections,
         };
     }
-
-    private void BuildTimeline(List<Booking> bookings, List<WorkSchedule> schedule)
-    {
-        var workRanges = schedule.Where(w => string.Equals(w.ScheduleType, ScheduleType.Work, StringComparison.Ordinal)).ToList();
-        if (workRanges.Count > 0)
-        {
-            TimelineStart = workRanges.Min(w => w.StartTime);
-            TimelineEnd = workRanges.Max(w => w.EndTime);
-        }
-        else
-        {
-            TimelineStart = new TimeOnly(10, 0);
-            TimelineEnd = new TimeOnly(20, 0);
-        }
-
-        foreach (var b in bookings)
-        {
-            var s = TimeOnly.FromDateTime(b.StartDateTime);
-            var e = TimeOnly.FromDateTime(b.StartDateTime.AddMinutes(b.DurationMinutes));
-            if (s < TimelineStart) TimelineStart = s;
-            if (e > TimelineEnd) TimelineEnd = e;
-        }
-
-        TimelineStart = new TimeOnly(TimelineStart.Hour, 0);
-        if (TimelineEnd.Minute > 0) TimelineEnd = new TimeOnly(Math.Min(23, TimelineEnd.Hour + 1), 0);
-
-        TimelineHours = new List<TimelineHour>();
-        for (var h = TimelineStart; h < TimelineEnd; h = h.AddHours(1))
-        {
-            var rowIndex = MinutesBetween(TimelineStart, h) / MinutesPerRow;
-            TimelineHours.Add(new TimelineHour(h, rowIndex + 1));
-        }
-
-        EntriesByMaster = Masters.ToDictionary(m => m.MasterId, _ => new List<TimelineEntry>());
-
-        foreach (var b in bookings)
-        {
-            if (!EntriesByMaster.ContainsKey(b.MasterId)) continue;
-            var s = TimeOnly.FromDateTime(b.StartDateTime);
-            var e = TimeOnly.FromDateTime(b.StartDateTime.AddMinutes(b.DurationMinutes));
-            EntriesByMaster[b.MasterId].Add(new TimelineEntry(
-                TimelineEntryKind.Booking,
-                s, e,
-                RowFor(s), Math.Max(1, MinutesBetween(s, e) / MinutesPerRow),
-                b, null));
-        }
-
-        foreach (var w in schedule)
-        {
-            if (!EntriesByMaster.ContainsKey(w.MasterId)) continue;
-            TimelineEntryKind? kind = w.ScheduleType switch
-            {
-                "Lunch"     => TimelineEntryKind.Lunch,
-                "DayOff"    => TimelineEntryKind.DayOff,
-                "Vacation"  => TimelineEntryKind.Vacation,
-                "SickLeave" => TimelineEntryKind.SickLeave,
-                _ => null,
-            };
-            if (kind is null) continue;
-
-            var label = kind switch
-            {
-                TimelineEntryKind.Lunch     => "Перерыв",
-                TimelineEntryKind.DayOff    => "Выходной",
-                TimelineEntryKind.Vacation  => "Отпуск",
-                TimelineEntryKind.SickLeave => "Больничный",
-                _ => string.Empty,
-            };
-            EntriesByMaster[w.MasterId].Add(new TimelineEntry(
-                kind.Value,
-                w.StartTime, w.EndTime,
-                RowFor(w.StartTime),
-                Math.Max(1, MinutesBetween(w.StartTime, w.EndTime) / MinutesPerRow),
-                null, label));
-        }
-
-        foreach (var k in EntriesByMaster.Keys.ToList())
-            EntriesByMaster[k] = EntriesByMaster[k].OrderBy(e => e.StartTime).ToList();
-    }
-
-    private int RowFor(TimeOnly t) => 1 + Math.Max(0, MinutesBetween(TimelineStart, t) / MinutesPerRow);
-
-    private static int MinutesBetween(TimeOnly a, TimeOnly b) => (int)(b - a).TotalMinutes;
 
     public static string FormatRussianDate(DateOnly d)
     {

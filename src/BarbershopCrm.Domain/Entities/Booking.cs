@@ -18,8 +18,8 @@ public class Booking
     public string Source { get; set; } = Domain.Enums.BookingSource.Online;
     public string? CancelReason { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
     public Client Client { get; set; } = null!;
     public Master Master { get; set; } = null!;
@@ -28,4 +28,6 @@ public class Booking
     public Visit? Visit { get; set; }
 
     public DateTime EndDateTime => StartDateTime.AddMinutes(DurationMinutes);
+
+    public decimal FinalPrice => PriceSnapshot * (1 - LoyaltyDiscountPercent / 100m);
 }

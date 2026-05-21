@@ -12,9 +12,8 @@ public class User
     public string PasswordSalt { get; set; } = null!;
     public int PasswordIterations { get; set; } = 100_000;
 
-    public bool IsEmailConfirmed { get; set; }
     public bool IsActive { get; set; } = true;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? LastLoginAt { get; set; }
 
     public Persona Persona { get; set; } = null!;

@@ -43,17 +43,17 @@ public static class SeedDevData
         var branch2 = branchIds[1];
 
         var hash = hasher.Hash(TestPassword);
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
 
         // ---- Owner ---------------------------------------------------------
         Add(db, hash, now, ownerRoleId, branchId: null,
-            "owner@thq.ru", "Тихий", "Михаил", "Сергеевич", "+79180000001", emailConfirmed: true);
+            "owner@thq.ru", "Тихий", "Михаил", "Сергеевич", "+79180000001");
 
         // ---- Admins (1 per branch) ----------------------------------------
         Add(db, hash, now, adminRoleId, branchId: branch1,
-            "admin1@thq.ru", "Сергеев", "Иван", "Петрович", "+79180000010", emailConfirmed: true);
+            "admin1@thq.ru", "Сергеев", "Иван", "Петрович", "+79180000010");
         Add(db, hash, now, adminRoleId, branchId: branch2,
-            "admin2@thq.ru", "Петров", "Алексей", "Иванович", "+79180000011", emailConfirmed: true);
+            "admin2@thq.ru", "Петров", "Алексей", "Иванович", "+79180000011");
 
         // ---- Masters (2 per branch) — also create Master entities ----------
         AddMaster(db, hash, now, masterRoleId, branch1,
@@ -75,12 +75,11 @@ public static class SeedDevData
 
         // ---- Clients (3 demo) — also create Client entities ----------------
         AddClient(db, hash, now, clientRoleId,
-            "client1@thq.ru", "Иванов", "Михаил", "Викторович", "+79180000030", emailConfirmed: true);
+            "client1@thq.ru", "Иванов", "Михаил", "Викторович", "+79180000030");
         AddClient(db, hash, now, clientRoleId,
-            "client2@thq.ru", "Смирнов", "Олег", null, "+79180000031", emailConfirmed: true);
+            "client2@thq.ru", "Смирнов", "Олег", null, "+79180000031");
         AddClient(db, hash, now, clientRoleId,
-            "client3@thq.ru", "Кравцов", "Игнат", "Петрович", "+79180000032",
-            emailConfirmed: false /* демо для проверки сценария «не подтверждённый email» */);
+            "client3@thq.ru", "Кравцов", "Игнат", "Петрович", "+79180000032");
 
         await db.SaveChangesAsync(ct);
         logger.LogInformation("SeedDevData: seeded {Count} test users", await db.Users.CountAsync(ct));
@@ -178,7 +177,7 @@ public static class SeedDevData
             PreferredBranchId = firstBranch,
             Comment = "Хочу записаться, перезвоните пожалуйста.",
             Status = LeadStatus.New,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
         });
         await db.SaveChangesAsync(ct);
         logger.LogInformation("SeedDevData: seeded sample leads");
@@ -214,7 +213,7 @@ public static class SeedDevData
             .ToListAsync(ct);
         if (masters.Count == 0) return;
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var today = DateOnly.FromDateTime(DateTime.Now.Date);
         // Seed 14 days starting 7 days ago so the demo also covers history.
         var start = today.AddDays(-7);
         var end = today.AddDays(14);
@@ -279,7 +278,7 @@ public static class SeedDevData
         int roleId,
         int? branchId,
         string login, string lastName, string firstName, string? middleName,
-        string phone, bool emailConfirmed)
+        string phone)
     {
         var persona = new Persona
         {
@@ -298,7 +297,6 @@ public static class SeedDevData
             PasswordHash = hash.HashBase64,
             PasswordSalt = hash.SaltBase64,
             PasswordIterations = hash.Iterations,
-            IsEmailConfirmed = emailConfirmed,
             IsActive = true,
             CreatedAt = now,
         };
@@ -317,8 +315,7 @@ public static class SeedDevData
         string position, DateOnly hireDate,
         int[]? serviceIds = null)
     {
-        var user = Add(db, hash, now, masterRoleId, branchId, login, lastName, firstName, middleName, phone,
-            emailConfirmed: true);
+        var user = Add(db, hash, now, masterRoleId, branchId, login, lastName, firstName, middleName, phone);
         var master = new Master
         {
             Persona = user.Persona,
@@ -343,11 +340,10 @@ public static class SeedDevData
         PasswordHash hash,
         DateTime now,
         int clientRoleId,
-        string login, string lastName, string firstName, string? middleName, string phone,
-        bool emailConfirmed)
+        string login, string lastName, string firstName, string? middleName, string phone)
     {
         var user = Add(db, hash, now, clientRoleId, branchId: null,
-            login, lastName, firstName, middleName, phone, emailConfirmed);
+            login, lastName, firstName, middleName, phone);
         db.Clients.Add(new Client
         {
             Persona = user.Persona,

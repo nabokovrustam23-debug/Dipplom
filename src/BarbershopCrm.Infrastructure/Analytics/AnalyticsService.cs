@@ -43,6 +43,18 @@ public sealed class AnalyticsService : IAnalyticsService
 
         var totalBookings = byStatusDto.Total;
 
+        // 1b. Bookings by source.
+        var sourceGroups = await bookingsQ
+            .GroupBy(b => b.Source)
+            .Select(g => new { Source = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
+
+        int bySource(string src) => sourceGroups.FirstOrDefault(x => x.Source == src)?.Count ?? 0;
+        var bySourceDto = new BookingsBySource(
+            Online: bySource(BookingSource.Online),
+            Admin: bySource(BookingSource.Admin),
+            Lead: bySource(BookingSource.Lead));
+
         // 2. Revenue and average ticket (visits joined to bookings via FK).
         // SQLite cannot SUM decimal server-side, so pull rows and aggregate on the client.
         var visitsQ = _db.Visits.AsNoTracking()
@@ -160,24 +172,45 @@ public sealed class AnalyticsService : IAnalyticsService
                 Revenue: Math.Round(t.Revenue, 2)))
             .ToList();
 
-        var leadsSubmittedQ = _db.Leads.AsNoTracking()
+        // 6. Sales funnel — built from the lead cohort.
+        var leadsQ = _db.Leads.AsNoTracking()
             .Where(l => l.CreatedAt >= fromDt && l.CreatedAt < toDt);
-        if (branchId.HasValue)
-            leadsSubmittedQ = leadsSubmittedQ.Where(l => l.PreferredBranchId == null || l.PreferredBranchId == branchId.Value);
-        var leadsSubmitted = await leadsSubmittedQ.CountAsync(ct);
 
-        var leadBookingsQ = _db.Bookings.AsNoTracking()
-            .Where(b => b.Source == BookingSource.Lead && b.CreatedAt >= fromDt && b.CreatedAt < toDt);
         if (branchId.HasValue)
-            leadBookingsQ = leadBookingsQ.Where(b => b.BranchId == branchId.Value);
-        var leadBookingStatuses = await leadBookingsQ.Select(b => b.Status).ToListAsync(ct);
-        var bookingsFromLeads = leadBookingStatuses.Count;
-        var completedFromLeads = leadBookingStatuses.Count(s => s == BookingStatus.Completed);
+        {
+            leadsQ = leadsQ.Where(l =>
+                l.PreferredBranchId == branchId.Value ||
+                (l.CreatedBooking != null && l.CreatedBooking.BranchId == branchId.Value));
+        }
+
+        var leadsData = await leadsQ
+            .Select(l => new
+            {
+                l.LeadId,
+                l.Status,
+                HasBooking = l.CreatedBookingId.HasValue,
+                BookingStatus = l.CreatedBooking != null ? l.CreatedBooking.Status : null
+            })
+            .ToListAsync(ct);
+
+        var leadsSubmitted = leadsData.Count;
+        var bookingsFromLeads = leadsData.Count(l => l.HasBooking);
+        var completedFromLeads = leadsData.Count(l => l.HasBooking && l.BookingStatus == BookingStatus.Completed);
+        var rejectedLeads = leadsData.Count(l => l.Status == LeadStatus.Rejected);
+
+        var conversionToBookingPercent = leadsSubmitted == 0
+            ? 0m : Math.Round((decimal)bookingsFromLeads / leadsSubmitted * 100m, 2);
+
+        var conversionToVisitPercent = leadsSubmitted == 0
+            ? 0m : Math.Round((decimal)completedFromLeads / leadsSubmitted * 100m, 2);
 
         var salesFunnel = new SalesFunnelSnapshot(
             LeadsSubmittedInPeriod: leadsSubmitted,
             BookingsFromLeadsInPeriod: bookingsFromLeads,
-            CompletedBookingsFromLeadsInPeriod: completedFromLeads);
+            CompletedBookingsFromLeadsInPeriod: completedFromLeads,
+            RejectedLeadsInPeriod: rejectedLeads,
+            ConversionToBookingPercent: conversionToBookingPercent,
+            ConversionToVisitPercent: conversionToVisitPercent);
 
         // Branch name (only when scoped).
         string? branchName = null;
@@ -195,6 +228,7 @@ public sealed class AnalyticsService : IAnalyticsService
             BranchId: branchId,
             BranchName: branchName,
             ByStatus: byStatusDto,
+            BySource: bySourceDto,
             TotalBookings: totalBookings,
             Revenue: Math.Round(revenue, 2),
             AverageTicket: averageTicket,
@@ -316,38 +350,19 @@ public sealed class AnalyticsService : IAnalyticsService
                 TopClients: Array.Empty<ClientAnalyticsRow>());
         }
 
-        // ABC-анализ: сортируем по выручке и определяем категории
-        var sortedByRevenue = clientRows.OrderByDescending(c => c.TotalRevenue).ToList();
-        var totalRevenue = sortedByRevenue.Sum(c => c.TotalRevenue);
-        
-        var categoryA = new List<ClientAnalyticsRow>();
-        var categoryB = new List<ClientAnalyticsRow>();
-        var categoryC = new List<ClientAnalyticsRow>();
-        
-        decimal cumulativeRevenue = 0m;
-        foreach (var client in sortedByRevenue)
-        {
-            cumulativeRevenue += client.TotalRevenue;
-            var revenuePercent = totalRevenue > 0 ? cumulativeRevenue / totalRevenue : 0m;
-            
-            if (revenuePercent <= 0.8m)
-                categoryA.Add(client);
-            else if (revenuePercent <= 0.95m)
-                categoryB.Add(client);
-            else
-                categoryC.Add(client);
-        }
-
+        // ABC-категории уже рассчитаны в GetClientAnalyticsRowsAsync — группируем по ним.
+        var totalRevenue = clientRows.Sum(c => c.TotalRevenue);
+        decimal CatSum(ClientAbcCategory cat) => clientRows.Where(c => c.AbcCategory == cat).Sum(c => c.TotalRevenue);
         var abcDistribution = new AbcDistribution(
-            CategoryACount: categoryA.Count,
-            CategoryARevenue: categoryA.Sum(c => c.TotalRevenue),
-            CategoryARevenuePercent: totalRevenue > 0 ? Math.Round(categoryA.Sum(c => c.TotalRevenue) / totalRevenue * 100m, 2) : 0m,
-            CategoryBCount: categoryB.Count,
-            CategoryBRevenue: categoryB.Sum(c => c.TotalRevenue),
-            CategoryBRevenuePercent: totalRevenue > 0 ? Math.Round(categoryB.Sum(c => c.TotalRevenue) / totalRevenue * 100m, 2) : 0m,
-            CategoryCCount: categoryC.Count,
-            CategoryCRevenue: categoryC.Sum(c => c.TotalRevenue),
-            CategoryCRevenuePercent: totalRevenue > 0 ? Math.Round(categoryC.Sum(c => c.TotalRevenue) / totalRevenue * 100m, 2) : 0m);
+            CategoryACount: clientRows.Count(c => c.AbcCategory == ClientAbcCategory.A),
+            CategoryARevenue: CatSum(ClientAbcCategory.A),
+            CategoryARevenuePercent: totalRevenue > 0 ? Math.Round(CatSum(ClientAbcCategory.A) / totalRevenue * 100m, 2) : 0m,
+            CategoryBCount: clientRows.Count(c => c.AbcCategory == ClientAbcCategory.B),
+            CategoryBRevenue: CatSum(ClientAbcCategory.B),
+            CategoryBRevenuePercent: totalRevenue > 0 ? Math.Round(CatSum(ClientAbcCategory.B) / totalRevenue * 100m, 2) : 0m,
+            CategoryCCount: clientRows.Count(c => c.AbcCategory == ClientAbcCategory.C),
+            CategoryCRevenue: CatSum(ClientAbcCategory.C),
+            CategoryCRevenuePercent: totalRevenue > 0 ? Math.Round(CatSum(ClientAbcCategory.C) / totalRevenue * 100m, 2) : 0m);
 
         // Распределение по уровням
         var tierDistribution = new TierDistribution(
@@ -357,7 +372,26 @@ public sealed class AnalyticsService : IAnalyticsService
             VipCount: clientRows.Count(c => c.Tier == ClientTier.VIP));
 
         // Топ-20 клиентов по выручке
-        var topClients = sortedByRevenue.Take(20).ToList();
+        var topClients = clientRows.OrderByDescending(c => c.TotalRevenue).Take(20).ToList();
+
+        var xyzDistribution = new XyzDistribution(
+            XCount: clientRows.Count(c => c.XyzCategory == ClientXyzCategory.X),
+            YCount: clientRows.Count(c => c.XyzCategory == ClientXyzCategory.Y),
+            ZCount: clientRows.Count(c => c.XyzCategory == ClientXyzCategory.Z));
+
+        int Count(ClientAbcCategory abc, ClientXyzCategory xyz) =>
+            clientRows.Count(c => c.AbcCategory == abc && c.XyzCategory == xyz);
+
+        var abcXyzMatrix = new AbcXyzMatrix(
+            Ax: Count(ClientAbcCategory.A, ClientXyzCategory.X),
+            Ay: Count(ClientAbcCategory.A, ClientXyzCategory.Y),
+            Az: Count(ClientAbcCategory.A, ClientXyzCategory.Z),
+            Bx: Count(ClientAbcCategory.B, ClientXyzCategory.X),
+            By: Count(ClientAbcCategory.B, ClientXyzCategory.Y),
+            Bz: Count(ClientAbcCategory.B, ClientXyzCategory.Z),
+            Cx: Count(ClientAbcCategory.C, ClientXyzCategory.X),
+            Cy: Count(ClientAbcCategory.C, ClientXyzCategory.Y),
+            Cz: Count(ClientAbcCategory.C, ClientXyzCategory.Z));
 
         return new ClientSegmentationSnapshot(
             From: from,
@@ -367,7 +401,11 @@ public sealed class AnalyticsService : IAnalyticsService
             TotalClients: clientRows.Count,
             AbcDistribution: abcDistribution,
             TierDistribution: tierDistribution,
-            TopClients: topClients);
+            TopClients: topClients)
+        {
+            XyzDistribution = xyzDistribution,
+            AbcXyzMatrix = abcXyzMatrix
+        };
     }
 
     public async Task<IReadOnlyList<ClientAnalyticsRow>> GetClientAnalyticsRowsAsync(
@@ -378,16 +416,8 @@ public sealed class AnalyticsService : IAnalyticsService
         var fromDt = ToStart(from);
         var toDt = ToEndExclusive(to);
 
-        // Получаем все завершенные визиты за период
+        // 1. Финансовые показатели и предпочтения (без дублирования персональных данных)
         var visitsQ = _db.Visits.AsNoTracking()
-            .Include(v => v.Booking)
-                .ThenInclude(b => b.Client)
-                    .ThenInclude(c => c.Persona)
-            .Include(v => v.Booking)
-                .ThenInclude(b => b.Master)
-                    .ThenInclude(m => m.Persona)
-            .Include(v => v.Booking)
-                .ThenInclude(b => b.Service)
             .Where(v => v.Booking.StartDateTime >= fromDt && v.Booking.StartDateTime < toDt);
 
         if (branchId.HasValue)
@@ -397,11 +427,6 @@ public sealed class AnalyticsService : IAnalyticsService
             .Select(v => new
             {
                 v.Booking.ClientId,
-                ClientFirstName = v.Booking.Client.Persona.FirstName,
-                ClientLastName = v.Booking.Client.Persona.LastName,
-                ClientPhone = v.Booking.Client.Persona.Phone,
-                ClientEmail = v.Booking.Client.Persona.Email,
-                ClientSource = v.Booking.Client.Source,
                 v.TotalAmount,
                 v.CompletedAt,
                 MasterName = v.Booking.Master.Persona.LastName + " " + v.Booking.Master.Persona.FirstName,
@@ -409,18 +434,34 @@ public sealed class AnalyticsService : IAnalyticsService
             })
             .ToListAsync(ct);
 
-        // Группируем по клиентам
+        // 2. Персональные данные — один запрос на всех уникальных клиентов
+        var clientIds = visits.Select(v => v.ClientId).Distinct().ToList();
+        var clientData = await _db.Clients.AsNoTracking()
+            .Where(c => clientIds.Contains(c.ClientId))
+            .Select(c => new
+            {
+                c.ClientId,
+                ClientFirstName = c.Persona.FirstName,
+                ClientLastName = c.Persona.LastName,
+                ClientPhone = c.Persona.Phone,
+                ClientEmail = c.Persona.Email,
+                ClientSource = c.Source
+            })
+            .ToListAsync(ct);
+        var clientMap = clientData.ToDictionary(c => c.ClientId);
+
+        // 3. Группируем по клиентам (MinBy/MaxBy — O(n) вместо двух O(n log n))
         var clientGroups = visits
             .GroupBy(v => v.ClientId)
             .Select(g =>
             {
-                var firstVisit = g.OrderBy(v => v.CompletedAt).First();
-                var lastVisit = g.OrderByDescending(v => v.CompletedAt).First();
+                var data = clientMap[g.Key];
+                var firstVisit = g.MinBy(v => v.CompletedAt);
+                var lastVisit = g.MaxBy(v => v.CompletedAt);
                 var totalVisits = g.Count();
                 var totalRevenue = g.Sum(v => v.TotalAmount);
-                var avgTicket = totalRevenue / totalVisits;
+                var avgTicket = totalVisits > 0 ? totalRevenue / totalVisits : 0m;
 
-                // Определяем уровень клиента
                 var tier = totalVisits switch
                 {
                     1 => ClientTier.New,
@@ -429,55 +470,64 @@ public sealed class AnalyticsService : IAnalyticsService
                     _ => ClientTier.VIP
                 };
 
-                // Находим предпочитаемого мастера (с кем больше всего визитов)
                 var preferredMaster = g
                     .GroupBy(v => v.MasterName)
                     .OrderByDescending(mg => mg.Count())
                     .Select(mg => mg.Key)
                     .FirstOrDefault();
 
-                // Находим предпочитаемую услугу
                 var preferredService = g
                     .GroupBy(v => v.ServiceName)
                     .OrderByDescending(sg => sg.Count())
                     .Select(sg => sg.Key)
                     .FirstOrDefault();
 
-                var daysSinceLastVisit = (int)(DateTime.UtcNow - lastVisit.CompletedAt).TotalDays;
+                var daysSinceLastVisit = (int)(DateTime.Now - lastVisit.CompletedAt).TotalDays;
+
+                // XYZ-категория на основе частоты визитов
+                var avgDaysBetween = totalVisits > 1
+                    ? (int)(lastVisit.CompletedAt - firstVisit.CompletedAt).TotalDays / (totalVisits - 1)
+                    : int.MaxValue;
+                var xyzCategory = avgDaysBetween switch
+                {
+                    <= 45 => ClientXyzCategory.X,
+                    <= 180 => ClientXyzCategory.Y,
+                    _ => ClientXyzCategory.Z
+                };
 
                 return new
                 {
                     ClientId = g.Key,
-                    ClientName = $"{firstVisit.ClientLastName} {firstVisit.ClientFirstName}".Trim(),
-                    Phone = firstVisit.ClientPhone,
-                    Email = firstVisit.ClientEmail,
+                    ClientName = $"{data.ClientLastName} {data.ClientFirstName}".Trim(),
+                    Phone = data.ClientPhone,
+                    Email = data.ClientEmail,
                     TotalVisits = totalVisits,
                     TotalRevenue = Math.Round(totalRevenue, 2),
                     AverageTicket = Math.Round(avgTicket, 2),
                     FirstVisitDate = firstVisit.CompletedAt,
                     LastVisitDate = lastVisit.CompletedAt,
                     DaysSinceLastVisit = daysSinceLastVisit,
+                    XyzCategory = xyzCategory,
                     Tier = tier,
                     PreferredMaster = preferredMaster,
                     PreferredService = preferredService,
-                    Source = firstVisit.ClientSource
+                    Source = data.ClientSource
                 };
             })
             .OrderByDescending(c => c.TotalRevenue)
             .ToList();
 
-        // Определяем ABC-категории
+        // 4. ABC-категории
         var totalRevenue = clientGroups.Sum(c => c.TotalRevenue);
         var result = new List<ClientAnalyticsRow>();
-        decimal cumulativeRevenue = 0m;
+        var cumulativeRevenue = 0m;
 
         foreach (var client in clientGroups)
         {
-            cumulativeRevenue += client.TotalRevenue;
-            var revenuePercent = totalRevenue > 0 ? cumulativeRevenue / totalRevenue : 0m;
-            
-            var abcCategory = revenuePercent <= 0.8m ? ClientAbcCategory.A
-                : revenuePercent <= 0.95m ? ClientAbcCategory.B
+            var currentPercent = totalRevenue > 0 ? cumulativeRevenue / totalRevenue : 0m;
+
+            var abcCategory = currentPercent < 0.8m ? ClientAbcCategory.A
+                : currentPercent < 0.95m ? ClientAbcCategory.B
                 : ClientAbcCategory.C;
 
             result.Add(new ClientAnalyticsRow(
@@ -492,10 +542,13 @@ public sealed class AnalyticsService : IAnalyticsService
                 LastVisitDate: client.LastVisitDate,
                 DaysSinceLastVisit: client.DaysSinceLastVisit,
                 AbcCategory: abcCategory,
+                XyzCategory: client.XyzCategory,
                 Tier: client.Tier,
                 PreferredMaster: client.PreferredMaster,
                 PreferredService: client.PreferredService,
                 Source: client.Source));
+
+            cumulativeRevenue += client.TotalRevenue;
         }
 
         return result;

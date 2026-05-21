@@ -1,91 +1,94 @@
 @page
 @model BarbershopCrm.Web.Pages.Account.Loyalty.IndexModel
 @{
-    ViewData["Title"] = "Программа лояльности";
+    ViewData["Title"] = "Программа лояльности — Тихого Часа";
 }
 
-<section class="loyalty-page">
-    <!-- Page Header -->
-    <div class="loyalty-page__header">
-        <a asp-page="/Profile/Index" class="btn btn--ghost">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            Назад в профиль
-        </a>
-        <h1 class="loyalty-page__title">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-            </svg>
-            Программа лояльности
-        </h1>
+<section class="loyalty-premium-hub-section animate-fade-in">
+    
+    <div class="analytics-header" style="margin-bottom: 2.5rem;">
+        <div class="analytics-header__content">
+            <span class="analytics-header__badge">Клуб привилегий</span>
+            <h2>Программа лояльности сети</h2>
+            <p class="analytics-header__subtitle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                <span>Накапливайте визиты и получайте персональные скидки на весь перечень услуг</span>
+            </p>
+        </div>
+        <div class="management-header__actions">
+            <a asp-page="/Profile/Index" class="btn btn--outline btn--with-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Вернуться в профиль</span>
+            </a>
+        </div>
     </div>
 
-    <!-- 1. Current Status Card -->
-    <div class="card loyalty-status-card">
-        <div class="loyalty-status-card__header">
-            <div class="loyalty-status-card__tier">
-                <div class="loyalty-status-card__tier-icon">
-                    @if (Model.LoyaltyInfo.CurrentTier.Code == "Premium")
+    <div class="visual-chart-box visual-chart-box--full loyalty-club-hero-card" style="margin-bottom: 2rem;">
+        <div class="loyalty-club-hero-card__layout">
+            <div class="loyalty-club-hero-card__main-info">
+                <div class="tier-visual-marker-box">
+                    @if (Model.LoyaltyInfo.CurrentTier.Code == "Premium" || Model.LoyaltyInfo.CurrentTier.Code == "VIP")
                     {
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                        </svg>
-                    }
-                    else if (Model.LoyaltyInfo.CurrentTier.Code == "VIP")
-                    {
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                        </svg>
+                        <div class="tier-glow-icon icon-color-gold">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                        </div>
                     }
                     else
                     {
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                        </svg>
+                        <div class="tier-glow-icon icon-color-blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"/>
+                            </svg>
+                        </div>
                     }
+                    <div class="tier-text-block">
+                        <small>Ваш персональный ранг</small>
+                        <h3>@Model.LoyaltyInfo.CurrentTier.DisplayName</h3>
+                    </div>
                 </div>
-                <div class="loyalty-status-card__tier-info">
-                    <span class="loyalty-status-card__tier-label">Текущий уровень</span>
-                    <h2 class="loyalty-status-card__tier-name">@Model.LoyaltyInfo.CurrentTier.DisplayName</h2>
+                
+                <p class="loyalty-motivation-speech">@Model.LoyaltyInfo.MotivationText</p>
+            </div>
+
+            <div class="loyalty-club-hero-card__metrics-panel">
+                @if (Model.LoyaltyInfo.CurrentTier.DiscountPercent > 0)
+                {
+                    <div class="premium-discount-badge-box">
+                        <span class="discount-value">@Model.LoyaltyInfo.CurrentTier.DiscountPercent%</span>
+                        <small class="discount-label">постоянная скидка</small>
+                    </div>
+                }
+                
+                <div class="counter-inline-node">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    <div class="counter-text">
+                        <strong>@Model.LoyaltyInfo.CompletedVisits</strong>
+                        <small>завершённых сессий у кресла</small>
+                    </div>
                 </div>
             </div>
-            @if (Model.LoyaltyInfo.CurrentTier.DiscountPercent > 0)
-            {
-                <div class="loyalty-status-card__discount">
-                    <span class="loyalty-status-card__discount-value">@Model.LoyaltyInfo.CurrentTier.DiscountPercent%</span>
-                    <span class="loyalty-status-card__discount-label">скидка</span>
-                </div>
-            }
         </div>
-
-        <div class="loyalty-status-card__stats">
-            <div class="loyalty-stat">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                </svg>
-                <div class="loyalty-stat__content">
-                    <span class="loyalty-stat__value">@Model.LoyaltyInfo.CompletedVisits</span>
-                    <span class="loyalty-stat__label">завершённых визитов</span>
-                </div>
-            </div>
-        </div>
-
-        <p class="loyalty-status-card__motivation">@Model.LoyaltyInfo.MotivationText</p>
     </div>
 
-    <!-- 2. Progress to Next Level -->
     @if (Model.LoyaltyInfo.NextTier != null)
     {
-        <div class="card loyalty-progress-card">
-            <h3 class="loyalty-progress-card__title">Прогресс до следующего уровня</h3>
-            
-            <div class="loyalty-progress-card__target">
-                <div class="loyalty-progress-card__target-info">
-                    <span class="loyalty-progress-card__target-label">Следующий уровень:</span>
-                    <span class="loyalty-progress-card__target-name">@Model.LoyaltyInfo.NextTier.DisplayName</span>
+        <section class="visual-chart-box visual-chart-box--full loyalty-progress-card" style="margin-bottom: 2rem;">
+            <div class="visual-chart-box__header" style="padding:0; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div style="display:flex; flex-direction:column;">
+                    <h4 style="margin:0;">Прогресс до следующего грейда</h4>
+                    <p class="visual-chart-box__hint" style="margin:0;">Следующий ранг: <strong>@Model.LoyaltyInfo.NextTier.DisplayName</strong></p>
                 </div>
-                <span class="loyalty-progress-card__target-discount">@Model.LoyaltyInfo.NextTier.DiscountPercent% скидка</span>
+                <span class="badge badge--success" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
+                    Цель: скидка @Model.LoyaltyInfo.NextTier.DiscountPercent%
+                </span>
             </div>
 
             @{
@@ -94,163 +97,150 @@
                     : 100;
             }
 
-            <div class="loyalty-progress-bar">
-                <div class="loyalty-progress-bar__track">
-                    <div class="loyalty-progress-bar__fill" style="width: @progressPercent%"></div>
+            <div class="custom-progress-item" style="margin: 1.5rem 0 1rem 0;">
+                <div class="custom-progress-item__track" style="height: 10px;">
+                    <div class="custom-progress-item__bar bar-status-completed" style="width: @progressPercent%"></div>
                 </div>
-                <div class="loyalty-progress-bar__labels">
-                    <span>@Model.LoyaltyInfo.CompletedVisits</span>
-                    <span>@Model.LoyaltyInfo.NextTier.MinVisits</span>
+                <div class="custom-progress-item__info" style="margin-top: 0.5rem;">
+                    <span class="item-label" style="font-size: 0.85rem; color: var(--color-text-muted);">Текущая планка: @Model.LoyaltyInfo.CompletedVisits</span>
+                    <span class="item-numeric" style="font-size: 0.85rem; color: var(--color-text-main);">Порог перехода: @Model.LoyaltyInfo.NextTier.MinVisits</span>
                 </div>
             </div>
 
-            <p class="loyalty-progress-card__text">
-                Осталось <strong>@Model.LoyaltyInfo.VisitsToNextTier визитов</strong> до повышения уровня
+            <p class="loyalty-remaining-text" style="font-size: 0.9rem; color: var(--color-text-muted); margin: 0;">
+                Для автоматического повышения статуса осталось выполнить ещё <strong>@Model.LoyaltyInfo.VisitsToNextTier визитов</strong>.
             </p>
-        </div>
+        </section>
     }
 
-    <!-- 3. All Tiers Table -->
-    <div class="card loyalty-tiers-card">
-        <h3 class="loyalty-tiers-card__title">Все уровни программы</h3>
+    <div class="analytics-visualization-row" style="margin-bottom: 2rem; gap: 2rem;">
         
-        <div class="loyalty-tiers-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Уровень</th>
-                        <th>Визитов</th>
-                        <th>Скидка</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var tier in Model.AllTiers)
-                    {
-                        var isCurrent = tier.Code == Model.LoyaltyInfo.CurrentTier.Code;
-                        <tr class="@(isCurrent ? "loyalty-tiers-table__row--current" : "")">
-                            <td>
-                                <div class="loyalty-tiers-table__tier-name">
-                                    @if (tier.Code == "Premium")
-                                    {
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                                        </svg>
-                                    }
-                                    else if (tier.Code == "VIP")
-                                    {
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                                        </svg>
-                                    }
-                                    else
-                                    {
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                        </svg>
-                                    }
-                                    @(tier.Code == "Standard" ? "Стандарт" : tier.Code == "VIP" ? "VIP" : "Премиум")
-                                    @if (isCurrent)
-                                    {
-                                        <span class="badge badge--ok">текущий</span>
-                                    }
-                                </div>
-                            </td>
-                            <td>от @tier.MinVisits</td>
-                            <td><strong>@tier.DiscountPercent%</strong></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 4. Birthday Bonus -->
-    <div class="card loyalty-birthday-card">
-        <h3 class="loyalty-birthday-card__title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            Бонус в день рождения
-        </h3>
-
-        @if (Model.BirthDate.HasValue)
-        {
-            <div class="loyalty-birthday-card__info">
-                <p class="loyalty-birthday-card__text">
-                    В течение <strong>±@Model.BirthdayWindowDays дней</strong> от вашего дня рождения 
-                    (@Model.BirthDate.Value.ToString("dd.MM")) вы получаете дополнительную скидку 
-                    <strong>@Model.BirthdayDiscountPercent%</strong> на все услуги!
-                </p>
-                <div class="loyalty-birthday-card__bonus">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"></path>
-                        <path d="M12 3v9"></path>
-                        <path d="m8 8 4-4 4 4"></path>
-                    </svg>
-                    <span>@Model.BirthdayDiscountPercent% скидка</span>
-                </div>
+        <section class="visual-chart-box" style="flex: 1 1 450px;">
+            <div class="visual-chart-box__header" style="padding:0; margin-bottom: 1.5rem;">
+                <h4>Таблица рангов клуба привилегий</h4>
             </div>
-        }
-        else
-        {
-            <div class="loyalty-birthday-card__empty">
-                <p class="loyalty-birthday-card__text">
-                    Укажите дату рождения в профиле, чтобы получать дополнительную скидку 
-                    <strong>@Model.BirthdayDiscountPercent%</strong> в день рождения!
-                </p>
-                <a asp-page="/Profile/Edit" class="btn btn--primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                    Указать дату рождения
-                </a>
-            </div>
-        }
-    </div>
-
-    <!-- 5. Discount History -->
-    @if (Model.LoyaltyHistory.DiscountedBookings.Any())
-    {
-        <div class="card loyalty-history-card">
-            <h3 class="loyalty-history-card__title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                История применения скидок
-            </h3>
-
-            <div class="loyalty-history-table">
-                <table>
+            
+            <div class="premium-table-container">
+                <table class="premium-table">
                     <thead>
                         <tr>
-                            <th>Дата</th>
-                            <th>Услуга</th>
-                            <th>Филиал</th>
-                            <th>Мастер</th>
-                            <th>Цена</th>
-                            <th>Скидка</th>
-                            <th>Итого</th>
-                            <th>Тип скидки</th>
+                            <th>Уровень программы</th>
+                            <th style="text-align: center;">Порог сессий</th>
+                            <th style="text-align: right;">Скидка грейда</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var tier in Model.AllTiers)
+                        {
+                            var isCurrent = tier.Code == Model.LoyaltyInfo.CurrentTier.Code;
+                            <tr class="@(isCurrent ? "table-row-highlighted-ok" : "")">
+                                <td>
+                                    <div class="table-client-profile" style="gap: 0.5rem;">
+                                        <div class="table-client-avatar" style="width:24px; height:24px; font-size: 0.75rem; background-color: @(isCurrent ? "var(--color-success)" : "var(--color-border)"); color: @(isCurrent ? "#fff" : "var(--color-text-muted)");">
+                                            @tier.Code.Substring(0,1)
+                                        </div>
+                                        <strong style="font-size: 0.9rem;">@tier.Code</strong>
+                                        @if (isCurrent)
+                                        {
+                                            <span class="badge badge--success" style="font-size:0.7rem; padding: 0.15rem 0.4rem;">Активен</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td style="text-align: center;" class="table-numeric-gray-bold">от @tier.MinVisits</td>
+                                <td style="text-align: right;" class="table-currency-highlight text-color-green">@tier.DiscountPercent%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="visual-chart-box loyalty-birthday-coupon-card" style="flex: 1 1 350px; display: flex; flex-direction: column;">
+            <div class="visual-chart-box__header" style="padding:0; margin-bottom: 1.5rem;">
+                <div class="header-icon-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"></path><path d="M12 3v9"></path><path d="m8 8 4-4 4 4"></path>
+                    </svg>
+                    <h4>Именинникам «Тихого Часа»</h4>
+                </div>
+            </div>
+
+            <div class="birthday-coupon-body-layout" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+                @if (Model.BirthDate.HasValue)
+                {
+                    <p class="birthday-coupon-desc" style="font-size: 0.9rem; line-height: 1.5; color: var(--color-text-muted); margin-bottom: 1.5rem;">
+                        В праздничный коридор <strong>±@Model.BirthdayWindowDays дней</strong> от вашего дня рождения 
+                        (<strong class="text-color-main">@Model.BirthDate.Value.ToString("dd.MM")</strong>) вам автоматически начисляется дополнительная скидка 
+                        <strong>@Model.BirthdayDiscountPercent%</strong> на любые позиции нашего прайс-листа!
+                    </p>
+                    <div class="birthday-coupon-ticket" style="background-color: var(--color-primary-soft); color: var(--color-primary); padding: 1rem; border-radius: var(--radius-md); text-align: center; border: 1px dashed var(--color-primary);">
+                        <strong style="font-size: 1.25rem; font-weight: 700; letter-spacing: 0.5px;">+@Model.BirthdayDiscountPercent% К СКИДКЕ</strong>
+                    </div>
+                }
+                else
+                {
+                    <p class="birthday-coupon-desc" style="font-size: 0.9rem; line-height: 1.5; color: var(--color-text-muted); margin-bottom: 1.5rem;">
+                        Укажите дату рождения в личной анкете профиля гостя, чтобы активировать дополнительную праздничную скидку 
+                        <strong>@Model.BirthdayDiscountPercent%</strong> во время вашего праздника!
+                    </p>
+                    <a asp-page="/Profile/Edit" class="btn btn--primary btn--sm btn--full-width" style="margin-top: auto;">
+                        <span>Заполнить дату рождения</span>
+                    </a>
+                }
+            </div>
+        </section>
+    </div>
+
+    <section class="visual-chart-box visual-chart-box--full">
+        <div class="visual-chart-box__header" style="padding:0; margin-bottom: 2rem;">
+            <div class="header-icon-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <h4>История закрытых касс и экономии</h4>
+            </div>
+            <p class="visual-chart-box__hint">Архивный журнал всех ваших выполненных сессий, к которым применялись дисконтные программы сети</p>
+        </div>
+
+        @if (Model.LoyaltyHistory.DiscountedBookings.Any())
+        {
+            <div class="premium-table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 110px;">Дата сеанса</th>
+                            <th>Наименование услуги</th>
+                            <th>Филиал сети</th>
+                            <th>Специалист кресла</th>
+                            <th style="text-align: right;">Прайс</th>
+                            <th style="text-align: center;">Скидка</th>
+                            <th style="text-align: right;">Оплачено</th>
+                            <th>Основание применения</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var row in Model.LoyaltyHistory.DiscountedBookings)
                         {
                             <tr>
-                                <td>@row.Date.ToString("dd.MM.yyyy")</td>
-                                <td>@row.ServiceName</td>
+                                <td class="table-numeric-gray-bold">@row.Date.ToString("dd.MM.yyyy")</td>
+                                <td><strong>@row.ServiceName</strong></td>
                                 <td>@row.BranchName</td>
                                 <td>@row.MasterName</td>
-                                <td>@row.BasePrice.ToString("N0") ₽</td>
-                                <td class="loyalty-history-table__discount">@row.DiscountPercent%</td>
-                                <td><strong>@row.FinalAmount.ToString("N0") ₽</strong></td>
+                                <td style="text-align: right;" class="table-numeric-gray-bold">@row.BasePrice.ToString("N0") ₽</td>
+                                <td style="text-align: center;" class="table-numeric-bold text-color-green">@row.DiscountPercent%</td>
+                                <td style="text-align: right;" class="table-currency-highlight">@row.FinalAmount.ToString("N0") ₽</td>
                                 <td>
-                                    <span class="badge badge--info">@row.DiscountReason</span>
+                                    <span class="badge badge--neutral" style="font-size: 0.75rem;">
+                                        @{
+                                            var reasonLabel = row.DiscountReason switch {
+                                                "Tier" => "Программа лояльности",
+                                                "Birthday" => "День рождения",
+                                                "FirstVisit" => "Первый визит",
+                                                _ => row.DiscountReason
+                                            };
+                                        }
+                                        @reasonLabel
+                                    </span>
                                 </td>
                             </tr>
                         }
@@ -258,39 +248,24 @@
                 </table>
             </div>
 
-            <div class="loyalty-history-card__summary">
-                @{
-                    var totalSaved = Model.LoyaltyHistory.DiscountedBookings.Sum(r => r.BasePrice - r.FinalAmount);
-                }
-                <p class="loyalty-history-card__summary-text">
-                    Всего сэкономлено: <strong>@totalSaved.ToString("N0") ₽</strong>
+            <div class="loyalty-history-card__summary" style="margin-top: 2rem; display: flex; justify-content: flex-end; padding: 1rem 1.5rem; background-color: var(--color-background-card); border-radius: var(--radius-md); border-left: 4px solid var(--color-success);">
+                <p style="margin: 0; font-size: 1rem; color: var(--color-text-main);">
+                    Суммарный объем сэкономленных инвестиций в ваш стиль: <strong class="text-color-green" style="font-size: 1.15rem; font-weight: 700; margin-left: 0.5rem;">@Model.LoyaltyHistory.DiscountedBookings.Sum(r => r.BasePrice - r.FinalAmount).ToString("N0") ₽</strong>
                 </p>
             </div>
-        </div>
-    }
-    else
-    {
-        <div class="card loyalty-history-card loyalty-history-card--empty">
-            <div class="loyalty-history-card__empty-state">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        }
+        else
+        {
+            <div class="master-agenda-empty" style="padding: 4rem 0;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" style="color: var(--color-text-muted); margin-bottom: 1rem;">
+                    <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
                 </svg>
-                <h4>История скидок пока пуста</h4>
-                <p>Совершите визит, чтобы начать получать скидки по программе лояльности</p>
-                <a asp-page="/BookingFlow/New" class="btn btn--primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    Записаться на услугу
+                <h4 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; font-weight: 600; color: var(--color-text-main);">Журнал экономии пока пуст</h4>
+                <p style="margin: 0 0 1.5rem 0; font-size: 0.9rem; color: var(--color-text-muted);">Выполненные визиты со скидками в вашей учетной записи на данный момент не зафиксированы.</p>
+                <a asp-page="/BookingFlow/New" class="btn btn--primary btn--sm">
+                    <span>Выбрать время и записаться</span>
                 </a>
             </div>
-        </div>
-    }
+        }
+    </section>
 </section>
-
-<!-- Made with Bob -->

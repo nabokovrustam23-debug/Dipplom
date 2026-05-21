@@ -3,7 +3,10 @@ namespace BarbershopCrm.Infrastructure.Analytics;
 public sealed record SalesFunnelSnapshot(
     int LeadsSubmittedInPeriod,
     int BookingsFromLeadsInPeriod,
-    int CompletedBookingsFromLeadsInPeriod);
+    int CompletedBookingsFromLeadsInPeriod,
+    int RejectedLeadsInPeriod,
+    decimal ConversionToBookingPercent,
+    decimal ConversionToVisitPercent);
 
 /// <summary>
 /// Aggregated KPIs for a single branch (or the whole network if BranchId is null)
@@ -15,6 +18,7 @@ public sealed record DashboardSnapshot(
     int? BranchId,
     string? BranchName,
     BookingsByStatus ByStatus,
+    BookingsBySource BySource,
     int TotalBookings,
     decimal Revenue,
     decimal AverageTicket,
@@ -25,6 +29,14 @@ public sealed record DashboardSnapshot(
     IReadOnlyList<MasterUtilizationRow> Utilization,
     IReadOnlyList<TopServiceRow> TopServices,
     SalesFunnelSnapshot SalesFunnel);
+
+public sealed record BookingsBySource(
+    int Online,
+    int Admin,
+    int Lead)
+{
+    public int Total => Online + Admin + Lead;
+}
 
 public sealed record BookingsByStatus(
     int Created,
@@ -88,6 +100,16 @@ public enum ClientAbcCategory
 }
 
 /// <summary>
+/// XYZ-категория клиента на основе стабильности визитов
+/// </summary>
+public enum ClientXyzCategory
+{
+    X, // Регулярные (ходят каждые 1-1.5 месяца)
+    Y, // Нерегулярные (ходят раз в квартал-полгода)
+    Z  // Разовые (1 визит или очень редкие)
+}
+
+/// <summary>
 /// Уровень клиента на основе количества визитов
 /// </summary>
 public enum ClientTier
@@ -113,6 +135,7 @@ public sealed record ClientAnalyticsRow(
     DateTime LastVisitDate,
     int DaysSinceLastVisit,
     ClientAbcCategory AbcCategory,
+    ClientXyzCategory XyzCategory,
     ClientTier Tier,
     string? PreferredMaster,
     string? PreferredService,
@@ -129,7 +152,30 @@ public sealed record ClientSegmentationSnapshot(
     int TotalClients,
     AbcDistribution AbcDistribution,
     TierDistribution TierDistribution,
-    IReadOnlyList<ClientAnalyticsRow> TopClients);
+    IReadOnlyList<ClientAnalyticsRow> TopClients)
+{
+    public XyzDistribution XyzDistribution { get; init; } = new(0, 0, 0);
+    public AbcXyzMatrix AbcXyzMatrix { get; init; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0);
+}
+
+/// <summary>
+/// Матрица ABC × XYZ (3×3) — пересечение категорий по выручке и стабильности
+/// </summary>
+public sealed record AbcXyzMatrix(
+    int Ax, int Ay, int Az,
+    int Bx, int By, int Bz,
+    int Cx, int Cy, int Cz);
+
+/// <summary>
+/// Распределение клиентов по XYZ-категориям
+/// </summary>
+public sealed record XyzDistribution(
+    int XCount,
+    int YCount,
+    int ZCount)
+{
+    public int Total => XCount + YCount + ZCount;
+}
 
 /// <summary>
 /// Распределение клиентов по ABC-категориям

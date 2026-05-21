@@ -23,9 +23,6 @@ public class AppDbContext : DbContext
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<Visit> Visits => Set<Visit>();
     public DbSet<Lead> Leads => Set<Lead>();
-    public DbSet<Notification> Notifications => Set<Notification>();
-    public DbSet<ConsentLogEntry> ConsentLog => Set<ConsentLogEntry>();
-    public DbSet<AuditLogEntry> AuditLog => Set<AuditLogEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

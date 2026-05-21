@@ -1,5 +1,6 @@
 using BarbershopCrm.Domain.Entities;
 using BarbershopCrm.Domain.Enums;
+using BarbershopCrm.Infrastructure.Loyalty;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -59,7 +60,7 @@ public sealed class BookingConfiguration : IEntityTypeConfiguration<Booking>
         b.HasKey(x => x.BookingId);
         b.Property(x => x.PriceSnapshot).HasColumnType("NUMERIC");
         b.Property(x => x.LoyaltyDiscountPercent).HasColumnType("NUMERIC").HasDefaultValue(0);
-        b.Property(x => x.LoyaltyDiscountReason).IsRequired().HasDefaultValue("None");
+        b.Property(x => x.LoyaltyDiscountReason).IsRequired().HasDefaultValue(ILoyaltyDiscountResolver.ReasonNone);
         b.Property(x => x.Status).IsRequired().HasDefaultValue(BookingStatus.Created);
         b.Property(x => x.Source).IsRequired().HasDefaultValue(BookingSource.Online);
         b.Property(x => x.CreatedAt).HasDefaultValueSql("(datetime('now'))");

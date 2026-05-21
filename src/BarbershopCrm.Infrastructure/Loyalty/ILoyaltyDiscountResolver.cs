@@ -2,12 +2,14 @@ namespace BarbershopCrm.Infrastructure.Loyalty;
 
 public interface ILoyaltyDiscountResolver
 {
-    /// <summary>
-    /// Рассчитать скидку для записи клиента
-    /// </summary>
+    public const string ReasonTier = "Tier";
+    public const string ReasonFirstVisit = "FirstVisit";
+    public const string ReasonBirthday = "Birthday";
+    public const string ReasonNone = "None";
+
     Task<DiscountResolution> ResolveDiscountAsync(
-        int clientId, 
-        DateTime bookingDateTime, 
+        int clientId,
+        DateTime bookingDateTime,
         DateOnly? clientBirthDate,
         CancellationToken ct = default);
 }
@@ -15,9 +17,10 @@ public interface ILoyaltyDiscountResolver
 public sealed class DiscountResolution
 {
     public decimal DiscountPercent { get; set; }
-    public string Reason { get; set; } = "None";
-    
-    public static DiscountResolution None() => new() { DiscountPercent = 0, Reason = "None" };
+    public string Reason { get; set; } = ILoyaltyDiscountResolver.ReasonNone;
+
+    public static DiscountResolution None() =>
+        new() { DiscountPercent = 0, Reason = ILoyaltyDiscountResolver.ReasonNone };
 }
 
 // Made with Bob

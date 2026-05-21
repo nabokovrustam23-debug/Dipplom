@@ -1,6 +1,7 @@
 using BarbershopCrm.Infrastructure;
 using BarbershopCrm.Infrastructure.Auth;
 using BarbershopCrm.Infrastructure.Data;
+using BarbershopCrm.Infrastructure.Loyalty;
 using BarbershopCrm.Infrastructure.Security;
 using BarbershopCrm.Domain.Enums;
 using BarbershopCrm.Web.Auth;
@@ -55,13 +56,27 @@ try
     builder.Services.Configure<BookingOptions>(builder.Configuration.GetSection("Booking"));
     builder.Services.AddScoped<IBookingService, BookingService>();
 
-    builder.Services.AddNotificationBackground();
+    builder.Services.AddOptions<LoyaltyOptions>()
+        .Bind(builder.Configuration.GetSection("Loyalty"))
+        .Validate(l => l.Tiers.Count == 0 || l.Tiers.Select(t => t.MinVisits).Distinct().Count() == l.Tiers.Count,
+            "Loyalty:Tiers содержит дубликаты MinVisits")
+        .ValidateOnStart();
 
     var app = builder.Build();
 
+    AppDomain.CurrentDomain.FirstChanceException += (_, args) =>
+    {
+        if (args.Exception is IOException)
+            Log.Warning(args.Exception, "First-chance IOException");
+    };
+
     app.UseSerilogRequestLogging();
 
-    if (!app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    else
     {
         app.UseExceptionHandler("/Error");
         app.UseHsts();
@@ -97,6 +112,7 @@ try
         var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("SeedDevData");
         await SeedDevData.ApplyAsync(db, hasher, logger);
+        await SeedBigData.ApplyAsync(db, hasher, logger);
     }
 
     app.Run();

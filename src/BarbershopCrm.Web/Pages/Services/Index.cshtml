@@ -1,7 +1,8 @@
-@page
+@page "/Services"
 @model BarbershopCrm.Web.Pages.Services.IndexModel
 @{
-    ViewData["Title"] = "Услуги";
+    ViewData["Title"] = "Стоимость услуг — Тихого Часа";
+    
     var hasFilters = !string.IsNullOrWhiteSpace(Model.Q)
         || !string.IsNullOrWhiteSpace(Model.Category)
         || Model.MinPrice.HasValue
@@ -10,133 +11,158 @@
         || (!string.IsNullOrWhiteSpace(Model.Sort) && Model.Sort != "name");
 }
 
-<header class="page-header">
-    <h1>Прайс-лист</h1>
-    <p class="muted">Единый прайс на все филиалы сети «Тихий час».</p>
-</header>
+<section class="services-catalog-section animate-fade-in">
+    
+    <div class="catalog-header">
+        <div class="catalog-header__content">
+            <span class="catalog-header__badge">Прейскурант услуг</span>
+            <h2>Мужской стиль и уход</h2>
+            <p class="catalog-header__subtitle">Единые цены на работу сертифицированных мастеров и премиальную косметику во всех филиалах сети «Тихий Час»</p>
+        </div>
+    </div>
 
-<form method="get" class="services-filters card">
-    <div class="services-filters__row">
-        <div class="form-group services-filters__search">
-            <label asp-for="Q">Поиск</label>
-            <div style="position: relative;">
-                <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                </svg>
-                <input asp-for="Q" class="input" type="search" placeholder="например, борода или стрижка"
-                       autocomplete="off" style="padding-left: 42px;" />
+    <form method="get" class="modern-filter-hub services-search-panel">
+        <div class="filter-form-grid">
+            
+            <div class="filter-field-box search-extend">
+                <label for="Q">Поиск по названию или описанию</label>
+                <div class="input-with-icon-layout">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon-inside">
+                        <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input id="Q" name="Q" value="@Model.Q" class="input input--hub search-input-field" 
+                           type="search" placeholder="например: стрижка, борода, моделирование..." autocomplete="off" />
+                </div>
+            </div>
+
+            <div class="filter-field-box">
+                <label for="Sort">Сортировать прайс</label>
+                <select id="Sort" name="Sort" class="input input--hub" onchange="this.form.submit()">
+                    <option value="">По алфавиту (А-Я)</option>
+                    <option value="price-asc" selected="@(Model.Sort == "price-asc")">Цена: сначала бюджетные</option>
+                    <option value="price-desc" selected="@(Model.Sort == "price-desc")">Цена: сначала премиальные</option>
+                    <option value="duration-asc" selected="@(Model.Sort == "duration-asc")">Время: покороче</option>
+                </select>
             </div>
         </div>
-        <div class="form-group">
-            <label asp-for="Sort">Сортировка</label>
-            <select asp-for="Sort" class="input">
-                <option value="">По названию</option>
-                <option value="price-asc">Цена: дешевле</option>
-                <option value="price-desc">Цена: дороже</option>
-                <option value="duration-asc">Длительность: короче</option>
-            </select>
-        </div>
-    </div>
 
-    <div class="services-filters__chips" role="tablist" aria-label="Категории">
-        <a class="chip @(string.IsNullOrEmpty(Model.Category) ? "chip--active" : "")"
-           asp-route-q="@Model.Q"
-           asp-route-category=""
-           asp-route-minPrice="@Model.MinPrice"
-           asp-route-maxPrice="@Model.MaxPrice"
-           asp-route-maxDuration="@Model.MaxDuration"
-           asp-route-sort="@Model.Sort">Все</a>
-        @foreach (var c in Model.Categories)
-        {
-            <a class="chip @(Model.Category == c.Slug ? "chip--active" : "")"
-               asp-route-q="@Model.Q"
-               asp-route-category="@c.Slug"
-               asp-route-minPrice="@Model.MinPrice"
-               asp-route-maxPrice="@Model.MaxPrice"
-               asp-route-maxDuration="@Model.MaxDuration"
-               asp-route-sort="@Model.Sort">@c.Title</a>
-        }
-    </div>
-
-    <div class="services-filters__row services-filters__ranges">
-        <div class="form-group">
-            <label asp-for="MinPrice">Цена от, ₽</label>
-            <input asp-for="MinPrice" class="input" type="number" min="0" step="50" inputmode="numeric" />
-        </div>
-        <div class="form-group">
-            <label asp-for="MaxPrice">Цена до, ₽</label>
-            <input asp-for="MaxPrice" class="input" type="number" min="0" step="50" inputmode="numeric" />
-        </div>
-        <div class="form-group">
-            <label asp-for="MaxDuration">Длительность до, мин</label>
-            <input asp-for="MaxDuration" class="input" type="number" min="0" step="5" inputmode="numeric" />
-        </div>
-        <div class="form-actions services-filters__actions">
-            <button type="submit" class="btn btn--primary">Применить</button>
-            @if (hasFilters)
+        <div class="services-category-tabs-row" role="tablist" aria-label="Категории услуг">
+            <a class="segment-item @(string.IsNullOrEmpty(Model.Category) ? "segment-item--active" : "")"
+               asp-route-q="@Model.Q" asp-route-category="" asp-route-minPrice="@Model.MinPrice"
+               asp-route-maxPrice="@Model.MaxPrice" asp-route-maxDuration="@Model.MaxDuration" asp-route-sort="@Model.Sort">
+                Все категории
+            </a>
+            @foreach (var c in Model.Categories)
             {
-                <a class="btn btn--outline" asp-page="/Services/Index">Сбросить</a>
+                <a class="segment-item @(Model.Category == c.Slug ? "segment-item--active" : "")"
+                   asp-route-q="@Model.Q" asp-route-category="@c.Slug" asp-route-minPrice="@Model.MinPrice"
+                   asp-route-maxPrice="@Model.MaxPrice" asp-route-maxDuration="@Model.MaxDuration" asp-route-sort="@Model.Sort">
+                    @c.Title
+                </a>
             }
         </div>
-    </div>
-</form>
 
-<p class="muted services-summary">
-    @if (hasFilters)
+        <div class="filter-form-grid filter-form-grid--second-row">
+            <div class="filter-field-box">
+                <label for="MinPrice">Цена от, ₽</label>
+                <input id="MinPrice" name="MinPrice" type="number" class="input input--hub" min="0" step="50" inputmode="numeric" value="@Model.MinPrice" />
+            </div>
+            <div class="filter-field-box">
+                <label for="MaxPrice">Цена до, ₽</label>
+                <input id="MaxPrice" name="MaxPrice" type="number" class="input input--hub" min="0" step="50" inputmode="numeric" value="@Model.MaxPrice" />
+            </div>
+            <div class="filter-field-box">
+                <label for="MaxDuration">Длительность до, мин</label>
+                <input id="MaxDuration" name="MaxDuration" type="number" class="input input--hub" min="0" step="5" inputmode="numeric" value="@Model.MaxDuration" />
+            </div>
+            
+            <div class="filter-hub-actions">
+                <button type="submit" class="btn btn--accent btn--sm">
+                    <span>Применить</span>
+                </button>
+                @if (hasFilters)
+                {
+                    <a class="btn btn--ghost btn--sm" asp-page="/Services/Index" title="Сбросить все фильтры">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        <span>Сбросить</span>
+                    </a>
+                }
+            </div>
+        </div>
+    </form>
+
+    <div class="search-results-counter">
+        <p>
+            @if (hasFilters)
+            {
+                <text>Найдено <strong>@Model.VisibleCount</strong> из <strong>@Model.TotalCount</strong> доступных услуг компании.</text>
+            }
+            else
+            {
+                <text>Всего в прейскуранте: <strong>@Model.TotalCount</strong> услуг.</text>
+            }
+        </p>
+    </div>
+
+    @if (Model.Services.Count == 0)
     {
-        <text>Показано <strong>@Model.VisibleCount</strong> из <strong>@Model.TotalCount</strong> услуг.</text>
+        <div class="premium-empty-state">
+            <div class="empty-state-illustration">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line>
+                </svg>
+            </div>
+            <h4>Ничего не найдено</h4>
+            <p>По заданным критериям фильтрации услуг не обнаружено. Попробуйте смягчить ценовые или временные рамки.</p>
+        </div>
     }
     else
     {
-        <text>Всего услуг: <strong>@Model.TotalCount</strong>.</text>
-    }
-</p>
-
-@if (Model.Services.Count == 0)
-{
-    <p class="muted">По заданным фильтрам ничего не нашлось. Попробуйте смягчить условия.</p>
-}
-else
-{
-    <div class="grid-3" style="margin-top: var(--space-3);">
-        @foreach (var service in Model.Services)
-        {
-            <article class="card service-card-enhanced">
-                @if (!string.IsNullOrEmpty(service.ImageUrl))
-                {
-                    <img class="service-card-enhanced__image" src="@service.ImageUrl" alt="" loading="lazy" />
-                }
-                else
-                {
-                    <div class="service-card-enhanced__image service-card-enhanced__image--placeholder" aria-hidden="true">
-                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                        </svg>
-                    </div>
-                }
-                <div class="service-card-enhanced__content">
-                    <div class="service-card-enhanced__head">
-                        <h3 class="service-card-enhanced__title">@service.Name</h3>
-                        <span class="service-card-enhanced__badge">@Model.CategoryOfService(service)</span>
-                    </div>
-                    @if (!string.IsNullOrWhiteSpace(service.Description))
-                    {
-                        <p class="service-card-enhanced__description">@service.Description</p>
-                    }
-                    <div class="service-card-enhanced__footer">
-                        <div class="service-card-enhanced__meta">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
+        <div class="services-premium-grid">
+            @foreach (var s in Model.Services)
+            {
+                <article class="service-display-card">
+                    
+                    <div class="service-display-card__media">
+                        @if (!string.IsNullOrEmpty(s.ImageUrl))
+                        {
+                            <img src="@s.ImageUrl" alt="" loading="lazy" class="service-image-fluid" />
+                        }
+                        else
+                        {
+                            <div class="service-placeholder-media-box" aria-hidden="true">
+                                <img src="~/images/service-placeholder.svg" alt="" class="placeholder-svg" asp-append-version="true" />
+                            </div>
+                        }
+                        
+                        <div class="service-duration-badge">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
                             </svg>
-                            <span class="tnum">@service.DurationMinutes мин</span>
+                            <span class="tnum">@s.DurationMinutes мин</span>
                         </div>
-                        <div class="service-card-enhanced__price tnum">@service.Price.ToString("0") ₽</div>
                     </div>
-                </div>
-            </article>
-        }
-    </div>
-}
+
+                    <div class="service-display-card__body">
+                        <div class="service-title-row">
+                            <h3 class="service-card-name">@s.Name</h3>
+                            <span class="service-card-price tnum">@s.Price.ToString("N0") ₽</span>
+                        </div>
+                        
+                        <div class="service-category-badge-box">
+                            <span class="badge-tier-pill badge-tier-pill--regular">
+                                @Model.CategoryOfService(s)
+                            </span>
+                        </div>
+                        
+                        <p class="service-card-description">
+                            @(string.IsNullOrWhiteSpace(s.Description) ? "Классическая процедура ухода, выполняемая сертифицированными мастерами с использованием премиальной мужской косметики." : s.Description)
+                        </p>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>

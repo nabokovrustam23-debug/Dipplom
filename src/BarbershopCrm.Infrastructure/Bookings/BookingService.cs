@@ -2,7 +2,6 @@ using BarbershopCrm.Domain.Entities;
 using BarbershopCrm.Domain.Enums;
 using BarbershopCrm.Infrastructure.Data;
 using BarbershopCrm.Infrastructure.Loyalty;
-using BarbershopCrm.Infrastructure.Notifications;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -13,24 +12,21 @@ public sealed class BookingService : IBookingService
 {
     private readonly AppDbContext _db;
     private readonly BookingOptions _opts;
-    private readonly INotificationService? _notifications;
     private readonly ILoyaltyDiscountResolver? _loyaltyResolver;
 
     public BookingService(
         AppDbContext db,
         IOptions<BookingOptions> opts,
-        INotificationService? notifications = null,
-        ILoyaltyDiscountResolver? loyaltyResolver = null)
+        ILoyaltyDiscountResolver loyaltyResolver)
     {
         _db = db;
         _opts = opts.Value;
-        _notifications = notifications;
         _loyaltyResolver = loyaltyResolver;
     }
 
     public async Task<BookingResult> CreateAsync(CreateBookingCommand cmd, CancellationToken ct)
     {
-        if (cmd.StartDateTime <= DateTime.UtcNow.AddSeconds(-30))
+        if (cmd.StartDateTime <= DateTime.Now.AddSeconds(-30))
             return BookingResult.Fail(BookingErrorCode.SlotInPast, "Нельзя записаться на прошедшее время.");
 
         var client = await _db.Clients.FirstOrDefaultAsync(c => c.ClientId == cmd.ClientId, ct);
@@ -107,8 +103,8 @@ public sealed class BookingService : IBookingService
             LoyaltyDiscountReason = discount.Reason,
             Status = BookingStatus.Created,
             Source = NormalizeSource(cmd.Source),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now,
         };
         _db.Bookings.Add(booking);
 
@@ -121,9 +117,6 @@ public sealed class BookingService : IBookingService
             return BookingResult.Fail(BookingErrorCode.SlotTaken, "Слот занят, выберите другое время.");
         }
 
-        if (_notifications is not null)
-            await _notifications.OnBookingCreatedAsync(booking.BookingId, ct);
-
         return BookingResult.Ok(booking.BookingId);
     }
 
@@ -135,9 +128,11 @@ public sealed class BookingService : IBookingService
         if (booking.Status is BookingStatus.Cancelled or BookingStatus.Completed or BookingStatus.NoShow)
             return BookingResult.Fail(BookingErrorCode.InvalidStatusTransition, $"Нельзя отменить запись в статусе {booking.Status}.");
 
+        if (actorRole == RoleCode.Master)
+            return BookingResult.Fail(BookingErrorCode.Unauthorized, "Мастер не имеет прав на отмену записей. Обратитесь к администратору.");
+
         if (actorRole == RoleCode.Client)
         {
-            // Client may cancel only their own.
             var ownsBooking = await _db.Clients
                 .Where(c => c.ClientId == booking.ClientId)
                 .Join(_db.Persona, c => c.PersonaId, p => p.PersonaId, (c, p) => p)
@@ -145,7 +140,7 @@ public sealed class BookingService : IBookingService
                 .AnyAsync(uid => uid == actorUserId, ct);
             if (!ownsBooking) return BookingResult.Fail(BookingErrorCode.Unauthorized, "Нельзя отменить чужую запись.");
 
-            var hours = (booking.StartDateTime - DateTime.UtcNow).TotalHours;
+            var hours = (booking.StartDateTime - DateTime.Now).TotalHours;
             if (hours < _opts.CancelCutoffHours)
                 return BookingResult.Fail(BookingErrorCode.CancelTooLate,
                     $"Отмена возможна не позднее, чем за {_opts.CancelCutoffHours} ч до начала.");
@@ -153,10 +148,8 @@ public sealed class BookingService : IBookingService
 
         booking.Status = BookingStatus.Cancelled;
         booking.CancelReason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
-        booking.UpdatedAt = DateTime.UtcNow;
+        booking.UpdatedAt = DateTime.Now;
         await _db.SaveChangesAsync(ct);
-        if (_notifications is not null)
-            await _notifications.OnBookingCancelledAsync(booking.BookingId, booking.CancelReason, ct);
         return BookingResult.Ok(booking.BookingId);
     }
 
@@ -169,14 +162,15 @@ public sealed class BookingService : IBookingService
             return BookingResult.Fail(BookingErrorCode.InvalidStatusTransition,
                 "Подтвердить можно только запись со статусом «Создана».");
 
+        if (DateTime.Now >= booking.StartDateTime)
+            return BookingResult.Fail(BookingErrorCode.ValidationFailed, "Нельзя подтвердить запись, время которой уже наступило.");
+
         if (!await ActorOwnsMasterAsync(booking.MasterId, actorUserId, actorRole, ct))
             return BookingResult.Fail(BookingErrorCode.Unauthorized, "Нет прав на подтверждение этой записи.");
 
         booking.Status = BookingStatus.Confirmed;
-        booking.UpdatedAt = DateTime.UtcNow;
+        booking.UpdatedAt = DateTime.Now;
         await _db.SaveChangesAsync(ct);
-        if (_notifications is not null)
-            await _notifications.OnBookingConfirmedAsync(booking.BookingId, ct);
         return BookingResult.Ok(booking.BookingId);
     }
 
@@ -198,9 +192,9 @@ public sealed class BookingService : IBookingService
                 "Завершить визит можно не раньше времени начала записи.");
 
         booking.Status = BookingStatus.Completed;
-        booking.UpdatedAt = DateTime.UtcNow;
+        booking.UpdatedAt = DateTime.Now;
 
-        var effectiveAmount = booking.PriceSnapshot * (1 - booking.LoyaltyDiscountPercent / 100m);
+        var effectiveAmount = booking.FinalPrice;
 
         if (booking.Visit is null)
         {
@@ -209,18 +203,16 @@ public sealed class BookingService : IBookingService
                 BookingId = booking.BookingId,
                 TotalAmount = effectiveAmount,
                 MasterNotes = string.IsNullOrWhiteSpace(cmd.MasterNotes) ? null : cmd.MasterNotes.Trim(),
-                CompletedAt = DateTime.UtcNow,
+                CompletedAt = DateTime.Now,
             });
         }
         else
         {
             booking.Visit.TotalAmount = effectiveAmount;
             booking.Visit.MasterNotes = string.IsNullOrWhiteSpace(cmd.MasterNotes) ? null : cmd.MasterNotes.Trim();
-            booking.Visit.CompletedAt = DateTime.UtcNow;
+            booking.Visit.CompletedAt = DateTime.Now;
         }
         await _db.SaveChangesAsync(ct);
-        if (_notifications is not null)
-            await _notifications.OnBookingCompletedAsync(booking.BookingId, ct);
         return BookingResult.Ok(booking.BookingId);
     }
 
@@ -236,12 +228,11 @@ public sealed class BookingService : IBookingService
         if (!await ActorOwnsMasterAsync(booking.MasterId, actorUserId, actorRole, ct))
             return BookingResult.Fail(BookingErrorCode.Unauthorized, "Нет прав на изменение этой записи.");
 
-        if (DateTime.Now < booking.StartDateTime)
-            return BookingResult.Fail(BookingErrorCode.ValidationFailed,
-                "Отметить «не пришёл» можно не раньше времени начала записи.");
+        if (DateTime.Now < booking.StartDateTime.AddMinutes(15))
+            return BookingResult.Fail(BookingErrorCode.ValidationFailed, "Отметить статус «Не пришёл» можно только через 15 минут после начала записи.");
 
         booking.Status = BookingStatus.NoShow;
-        booking.UpdatedAt = DateTime.UtcNow;
+        booking.UpdatedAt = DateTime.Now;
         await _db.SaveChangesAsync(ct);
         return BookingResult.Ok(booking.BookingId);
     }

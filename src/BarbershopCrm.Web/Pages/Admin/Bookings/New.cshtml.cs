@@ -188,7 +188,7 @@ public class NewModel : AppPageModel
             {
                 lead.Status = LeadStatus.Done;
                 lead.ProcessedByUserId = Current.UserId;
-                lead.ProcessedAt = DateTime.UtcNow;
+                lead.ProcessedAt = DateTime.Now;
                 lead.CreatedBookingId = result.BookingId;
                 await _db.SaveChangesAsync(ct);
             }

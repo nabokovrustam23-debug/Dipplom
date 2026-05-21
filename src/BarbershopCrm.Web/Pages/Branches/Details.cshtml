@@ -4,93 +4,142 @@
     ViewData["Title"] = Model.Branch.Name;
 }
 
-<nav class="breadcrumbs faint" aria-label="Хлебные крошки">
-    <a asp-page="/Branches/Index">Филиалы</a> ›
-    <span>@Model.Branch.Name</span>
+<nav class="premium-breadcrumbs-nav" aria-label="Навигация по разделам">
+    <a asp-page="/Branches/Index" class="breadcrumb-root">Филиалы</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">@Model.Branch.Name</span>
 </nav>
 
-<header class="page-header">
-    <h1>@Model.Branch.Name</h1>
-    <p class="muted">@Model.Branch.Address</p>
-</header>
-
-<div class="branch-details">
-    @if (!string.IsNullOrEmpty(Model.Branch.ImageUrl))
-    {
-        <img class="image-thumb branch-details__image" src="@Model.Branch.ImageUrl" alt="Фотография филиала «@Model.Branch.Name»" />
-    }
-
-    <dl class="info-list">
-        <dt>Часы работы</dt>
-        <dd class="tnum">@Model.Branch.OpeningTime.ToString("HH:mm") – @Model.Branch.ClosingTime.ToString("HH:mm")</dd>
-
-        @if (!string.IsNullOrWhiteSpace(Model.Branch.Phone))
-        {
-            <dt>Телефон</dt>
-            <dd class="tnum">
-                <a href="tel:@Model.Branch.Phone.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "")">@Model.Branch.Phone</a>
-            </dd>
-        }
-    </dl>
-</div>
-
-<section style="margin-top: var(--space-6);" aria-labelledby="masters-heading">
-    <h2 id="masters-heading">Мастера филиала</h2>
-
-    @if (Model.Masters.Count == 0)
-    {
-        <p class="muted">В этом филиале пока нет мастеров.</p>
-    }
-    else
-    {
-        <div class="grid-3" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); margin-top: var(--space-4);">
-            @foreach (var master in Model.Masters)
+<section class="branch-detailed-hub animate-fade-in">
+    
+    <div class="branch-profile-showcase-card">
+        <div class="branch-profile-showcase-card__media">
+            @if (!string.IsNullOrEmpty(Model.Branch.ImageUrl))
             {
-                var yearsOfExperience = (DateOnly.FromDateTime(DateTime.Today).Year - master.HireDate.Year);
-                var experienceText = yearsOfExperience switch
-                {
-                    0 => "Новичок",
-                    1 => "1 год опыта",
-                    2 or 3 or 4 => $"{yearsOfExperience} года опыта",
-                    _ => $"{yearsOfExperience} лет опыта"
-                };
-                
-                <article class="card master-card">
-                    <div class="master-card__header">
-                        @if (!string.IsNullOrEmpty(master.AvatarPath))
-                        {
-                            <img class="master-card__avatar" src="@master.AvatarPath" alt="@master.Persona.FullName" />
-                        }
-                        else
-                        {
-                            <div class="master-card__avatar master-card__avatar--placeholder">
-                                @(master.Persona.LastName.Length > 0 ? master.Persona.LastName[0].ToString() : "?")@(master.Persona.FirstName.Length > 0 ? master.Persona.FirstName[0].ToString() : "")
-                            </div>
-                        }
-                        <div class="master-card__info">
-                            <h3 class="master-card__name">@master.Persona.FullName</h3>
-                            <p class="master-card__experience faint">@experienceText</p>
-                        </div>
-                    </div>
-                    
-                    @if (!string.IsNullOrWhiteSpace(master.Bio))
-                    {
-                        <p class="master-card__bio muted">@master.Bio</p>
-                    }
-                    
-                    @if (master.MasterServices.Any())
-                    {
-                        <div class="master-card__services">
-                            @foreach (var ms in master.MasterServices)
-                            {
-                                <span class="master-card__service-tag">@ms.Service.Name</span>
-                            }
-                        </div>
-                    }
-                </article>
+                <img class="branch-detail-hero-img" src="@Model.Branch.ImageUrl" alt="Интерьер филиала @Model.Branch.Name" />
+            }
+            else
+            {
+                <div class="branch-detail-hero-placeholder">
+                    <img src="~/images/branch-placeholder.svg" alt="" style="width: 80px; height: 80px;" />
+                </div>
             }
         </div>
-    }
-</section>
+        
+        <div class="branch-profile-showcase-card__info">
+            <span class="showcase-badge">Карточка локации</span>
+            <h2>@Model.Branch.Name</h2>
+            <p class="showcase-address-sub">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>@Model.Branch.Address</span>
+            </p>
+            
+            <div class="feed-card-divider" style="margin: 1.5rem 0;"></div>
+            
+            <div class="showcase-technical-grid">
+                <div class="tech-info-node">
+                    <small>Режим работы филиала</small>
+                    <strong class="tnum">@Model.Branch.OpeningTime.ToString("HH:mm") – @Model.Branch.ClosingTime.ToString("HH:mm")</strong>
+                </div>
+                
+                @if (!string.IsNullOrWhiteSpace(Model.Branch.Phone))
+                {
+                    <div class="tech-info-node">
+                        <small>Контактный телефон рецепции</small>
+                        <strong>
+                            <a href="tel:@Model.Branch.Phone.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "")" class="tnum">@Model.Branch.Phone</a>
+                        </strong>
+                    </div>
+                }
+            </div>
+            
+            <div class="showcase-action-row" style="margin-top: 2rem;">
+                <a asp-page="/BookingFlow/New" asp-route-branchId="@Model.Branch.BranchId" class="btn btn--primary">
+                    <span>Записаться в этот филиал</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
-<p style="margin-top: var(--space-5);"><a asp-page="/Branches/Index">← Все филиалы</a></p>
+    <section class="branch-masters-section" aria-labelledby="masters-heading" style="margin-top: 4rem;">
+        <div class="visual-chart-box__header" style="margin-bottom: 2rem; padding: 0;">
+            <h4>Действующий состав мастеров локации</h4>
+            <p class="visual-chart-box__hint">Наши эксперты регулярно проходят повышение квалификации и владеют всеми техниками современных стрижек</p>
+        </div>
+
+        @if (Model.Masters.Count == 0)
+        {
+            <div class="premium-empty-state">
+                <h4>Команда формируется</h4>
+                <p>В данном филиале временно нет доступных для записи мастеров. Зайдите позже или выберите другую точку сети.</p>
+            </div>
+        }
+        else
+        {
+            <div class="leads-premium-list-layout" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+                @foreach (var master in Model.Masters)
+                {
+                    var yearsOfExperience = (DateOnly.FromDateTime(DateTime.Today).Year - master.HireDate.Year);
+                    var experienceText = yearsOfExperience switch
+                    {
+                        0 => "Новичок бренда",
+                        1 => "1 год опыта",
+                        2 or 3 or 4 => $"{yearsOfExperience} года опыта",
+                        _ => $"{yearsOfExperience} лет опыта"
+                    };
+                    
+                    <article class="lead-dashboard-card master-portfolio-card">
+                        <div class="lead-dashboard-card__main" style="padding: 1.5rem;">
+                            
+                            <div class="lead-customer-profile-box">
+                                @if (!string.IsNullOrEmpty(master.AvatarPath))
+                                {
+                                    <img class="lead-customer-avatar master-avatar-round" src="@master.AvatarPath" alt="Барбер @master.Persona.FullName" />
+                                }
+                                else
+                                {
+                                    <div class="lead-customer-avatar master-avatar-initials-box">
+                                        @(master.Persona.LastName.Length > 0 ? master.Persona.LastName[0].ToString() : "")@(master.Persona.FirstName.Length > 0 ? master.Persona.FirstName[0].ToString() : "")
+                                    </div>
+                                }
+                                <div class="lead-customer-meta">
+                                    <h4 class="customer-title-name">@master.Persona.FullName</h4>
+                                    <span class="badge-tier-pill badge-tier-pill--regular" style="margin-top: 0.25rem; display: inline-block;">
+                                        @experienceText
+                                    </span>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(master.Bio))
+                            {
+                                <p class="master-portfolio-bio-text" style="margin-top: 1rem; font-size: 0.9rem; line-height: 1.4; color: var(--color-text-muted);">
+                                    @master.Bio
+                                </p>
+                            }
+                            
+                            @if (master.MasterServices.Any())
+                            {
+                                <div class="master-portfolio-tags-stack" style="margin-top: 1.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                    @foreach (var ms in master.MasterServices)
+                                    {
+                                        <span class="pref-tag pref-tag--service" style="margin: 0; font-size: 0.75rem;">
+                                            @ms.Service.Name
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+    <div class="back-navigation-row" style="margin-top: 3rem;">
+        <a asp-page="/Branches/Index" class="btn btn--ghost btn--sm">
+            <span>← Вернуться ко всем филиалам</span>
+        </a>
+    </div>
+</section>

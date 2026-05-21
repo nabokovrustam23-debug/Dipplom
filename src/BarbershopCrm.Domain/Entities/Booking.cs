@@ -28,4 +28,6 @@ public class Booking
     public Visit? Visit { get; set; }
 
     public DateTime EndDateTime => StartDateTime.AddMinutes(DurationMinutes);
+
+    public decimal FinalPrice => PriceSnapshot * (1 - LoyaltyDiscountPercent / 100m);
 }

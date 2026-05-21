@@ -12,15 +12,26 @@ public enum ScheduleAgendaFormTarget
 public static class ScheduleAgendaRules
 {
     public static bool CanConfirm(Booking b) =>
-        b.Status == BookingStatus.Created;
+        b.Status == BookingStatus.Created && DateTime.Now < b.StartDateTime;
 
-    public static bool CanCancel(Booking b) =>
-        b.Status is BookingStatus.Created or BookingStatus.Confirmed;
+    public static bool CanCancel(Booking b, ScheduleAgendaFormTarget target) =>
+        (b.Status is BookingStatus.Created or BookingStatus.Confirmed)
+        && target == ScheduleAgendaFormTarget.AdminSchedule;
 
-    /// <summary>Завершение и «не пришёл» — только с момента начала записи (UTC).</summary>
-    public static bool CanCompleteOrNoShow(Booking b) =>
+    public static bool CanComplete(Booking b) =>
         (b.Status is BookingStatus.Created or BookingStatus.Confirmed)
         && DateTime.Now >= b.StartDateTime;
+
+    public static bool CanMarkNoShow(Booking b) =>
+        (b.Status is BookingStatus.Created or BookingStatus.Confirmed)
+        && DateTime.Now >= b.StartDateTime.AddMinutes(15);
+
+    public static bool HasAnyActions(Booking b, ScheduleAgendaFormTarget target) =>
+        CanConfirm(b) || CanCancel(b, target) || CanComplete(b) || CanMarkNoShow(b);
+
+    public static bool WillBeAvailableSoon(Booking b) =>
+        (b.Status is BookingStatus.Created or BookingStatus.Confirmed)
+        && DateTime.Now < b.StartDateTime;
 }
 
 public sealed class ScheduleAgendaViewModel

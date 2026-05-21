@@ -2,9 +2,10 @@
 @using System.Globalization
 @model BarbershopCrm.Web.Pages.Owner.Analytics.CompareModel
 @{
-    ViewData["Title"] = "Сравнение филиалов";
+    ViewData["Title"] = "Сравнение филиалов сети — Тихого Часа";
     ViewData["ManagementTab"] = "analytics";
     var ru = CultureInfo.GetCultureInfo("ru-RU");
+
     string Money(decimal v) => v.ToString("#,##0.00", ru) + " ₽";
     string Pct(decimal v) => (v * 100m).ToString("0.0", ru) + " %";
     string PctAlready(decimal v) => v.ToString("0.0", ru) + " %";
@@ -12,63 +13,142 @@
 
 <partial name="_ManagementTabs" />
 
-<section class="card">
-    <div class="card__header">
-        <h1>Сравнение филиалов</h1>
+<section class="analytics-header">
+    <div class="analytics-header__content">
+        <span class="analytics-header__badge">Сводный анализ компании</span>
+        <h2>Сравнительный анализ филиалов</h2>
+        <p class="analytics-header__subtitle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83M22 12A10 10 0 0 0 12 2v10z"/>
+            </svg>
+            <span>Перекрестное сопоставление операционной и финансовой эффективности локаций</span>
+        </p>
+    </div>
+    <div class="management-header__actions">
         <a asp-page="/Owner/Analytics/Index"
            asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
            asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
-           class="btn btn--outline">К дашборду</a>
+           class="btn btn--outline btn--with-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Вернуться к дашборду</span>
+        </a>
     </div>
+</section>
 
-    <form method="get" class="form-row">
-        <div class="form-group">
-            <label for="From">С</label>
-            <input id="From" name="From" type="date" class="input" value="@Model.FromValue.ToString("yyyy-MM-dd")" />
+<section class="analytics-filters-card">
+    <div class="analytics-filters-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <h3>Выбор периода для сопоставления</h3>
+    </div>
+    <form method="get" class="analytics-filters">
+        <div class="filter-group">
+            <label for="From"><span>Дата начала анализа</span></label>
+            <input id="From" name="From" type="date" class="input input--filter" value="@Model.FromValue.ToString("yyyy-MM-dd")" />
         </div>
-        <div class="form-group">
-            <label for="To">По</label>
-            <input id="To" name="To" type="date" class="input" value="@Model.ToValue.ToString("yyyy-MM-dd")" />
+        <div class="filter-group">
+            <label for="To"><span>Дата завершения анализа</span></label>
+            <input id="To" name="To" type="date" class="input input--filter" value="@Model.ToValue.ToString("yyyy-MM-dd")" />
         </div>
-        <div class="form-actions">
-            <button type="submit" class="btn btn--primary">Применить</button>
+        <div class="filter-actions">
+            <button type="submit" class="btn btn--accent btn--filter">
+                <span>Сравнить филиалы</span>
+            </button>
         </div>
     </form>
+</section>
 
+<section class="visual-chart-box visual-chart-box--full animate-fade-in">
     @if (Model.Rows.Count == 0)
     {
-        <p class="muted">Активных филиалов не найдено.</p>
+        <div class="visual-chart-box__empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p>Активных точек или транзакций в системе за этот период времени не зафиксировано.</p>
+        </div>
     }
     else
     {
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">Филиал</th>
-                    <th scope="col" class="num">Записей</th>
-                    <th scope="col" class="num">Завершено</th>
-                    <th scope="col" class="num">Выручка</th>
-                    <th scope="col" class="num">Средний чек</th>
-                    <th scope="col" class="num">Средняя загрузка</th>
-                    <th scope="col" class="num">% отмен</th>
-                    <th scope="col" class="num">% no-show</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var r in Model.Rows)
-            {
-                <tr>
-                    <td>@r.BranchName</td>
-                    <td class="num">@r.TotalBookings</td>
-                    <td class="num">@r.CompletedBookings</td>
-                    <td class="num">@Money(r.Revenue)</td>
-                    <td class="num">@Money(r.AverageTicket)</td>
-                    <td class="num">@PctAlready(r.AverageUtilizationPercent)</td>
-                    <td class="num">@Pct(r.CancelRate)</td>
-                    <td class="num">@Pct(r.NoShowRate)</td>
-                </tr>
-            }
-            </tbody>
-        </table>
+        <div class="premium-table-container">
+            <table class="premium-table premium-table--compare">
+                <thead>
+                    <tr>
+                        <th>Наименование филиала</th>
+                        <th style="text-align: center;">Всего записей</th>
+                        <th style="text-align: center;">Выполнено визитов</th>
+                        <th style="text-align: right;">Суммарная выручка</th>
+                        <th style="text-align: right;">Средний чек</th>
+                        <th style="text-align: center;">Ср. загрузка мастеров</th>
+                        <th style="text-align: center;">Доля отмен</th>
+                        <th style="text-align: center;">Доля неявок (No-Show)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        <tr>
+                            <td>
+                                <div class="table-client-profile">
+                                    <div class="table-client-avatar" style="background-color: var(--color-primary-soft); color: var(--color-primary);">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                                        </svg>
+                                    </div>
+                                    <strong class="table-client-name-text">@r.BranchName</strong>
+                                </div>
+                            </td>
+                            
+                            <td style="text-align: center;" class="table-numeric-bold">
+                                @r.TotalBookings
+                            </td>
+                            
+                            <td style="text-align: center;" class="table-numeric-gray-bold">
+                                @r.CompletedBookings
+                            </td>
+                            
+                            <td style="text-align: right;" class="table-currency-highlight">
+                                @Money(r.Revenue)
+                            </td>
+                            
+                            <td style="text-align: right; color: var(--color-text-main);" class="table-currency-highlight">
+                                @Money(r.AverageTicket)
+                            </td>
+                            
+                            <td style="text-align: center;">
+                                @{
+                                    var u = r.AverageUtilizationPercent;
+                                    var utilColorClass = u < 35m ? "util-text-low" : u > 85m ? "util-text-over" : "util-text-optimal";
+                                }
+                                <span class="table-util-badge @utilColorClass">
+                                    @PctAlready(r.AverageUtilizationPercent)
+                                </span>
+                            </td>
+                            
+                            <td style="text-align: center;">
+                                <span class="badge-modern-pill badge-modern-pill--cancelled">
+                                    @Pct(r.CancelRate)
+                                </span>
+                            </td>
+                            
+                            <td style="text-align: center;">
+                                <span class="badge-modern-pill badge-modern-pill--noshow">
+                                    @Pct(r.NoShowRate)
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
 </section>

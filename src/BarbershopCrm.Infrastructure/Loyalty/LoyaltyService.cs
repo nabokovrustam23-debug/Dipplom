@@ -21,12 +21,10 @@ public sealed class LoyaltyService : ILoyaltyService
     {
         // Подсчитываем завершённые визиты клиента
         var completedVisits = await _db.Bookings
-            .Where(b => b.ClientId == clientId && b.Status == BookingStatus.Completed)
-            .Join(_db.Visits, b => b.BookingId, v => v.BookingId, (b, v) => v)
-            .CountAsync(ct);
+            .CountAsync(b => b.ClientId == clientId && b.Status == BookingStatus.Completed && b.Visit != null, ct);
 
         // Определяем текущий уровень
-        var currentTier = GetTierForVisits(completedVisits);
+        var currentTier = _options.GetTierForVisits(completedVisits);
         var currentTierInfo = new LoyaltyTierInfo
         {
             Code = currentTier.Code,
@@ -36,7 +34,7 @@ public sealed class LoyaltyService : ILoyaltyService
         };
 
         // Определяем следующий уровень
-        var nextTier = GetNextTier(completedVisits);
+        var nextTier = _options.GetNextTier(completedVisits);
         LoyaltyTierInfo? nextTierInfo = null;
         var visitsToNext = 0;
         var motivationText = string.Empty;
@@ -104,29 +102,11 @@ public sealed class LoyaltyService : ILoyaltyService
 
     private static string GetDiscountReasonDisplayName(string reason) => reason switch
     {
-        "Tier" => "Уровень лояльности",
-        "Birthday" => "День рождения",
-        "FirstVisit" => "Первый визит",
+        ILoyaltyDiscountResolver.ReasonTier => "Уровень лояльности",
+        ILoyaltyDiscountResolver.ReasonBirthday => "День рождения",
+        ILoyaltyDiscountResolver.ReasonFirstVisit => "Первый визит",
         _ => "Скидка"
     };
-
-    private LoyaltyTier GetTierForVisits(int visits)
-    {
-        // Сортируем уровни по убыванию MinVisits и берём первый подходящий
-        var sortedTiers = _options.Tiers.OrderByDescending(t => t.MinVisits).ToList();
-        return sortedTiers.FirstOrDefault(t => visits >= t.MinVisits) 
-               ?? sortedTiers.LastOrDefault() 
-               ?? new LoyaltyTier { Code = "Standard", MinVisits = 0, DiscountPercent = 0 };
-    }
-
-    private LoyaltyTier? GetNextTier(int currentVisits)
-    {
-        // Находим следующий уровень с MinVisits > currentVisits
-        return _options.Tiers
-            .Where(t => t.MinVisits > currentVisits)
-            .OrderBy(t => t.MinVisits)
-            .FirstOrDefault();
-    }
 
     private static string GetTierDisplayName(string code) => code switch
     {

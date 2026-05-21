@@ -1,16 +1,19 @@
 using BarbershopCrm.Domain.Entities;
+using BarbershopCrm.Domain.Enums;
+using BarbershopCrm.Infrastructure.Auth;
 using BarbershopCrm.Infrastructure.Data;
+using BarbershopCrm.Web.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace BarbershopCrm.Web.Pages.Services;
 
-public class IndexModel : PageModel
+public class IndexModel : AppPageModel
 {
     private readonly AppDbContext _db;
 
-    public IndexModel(AppDbContext db) => _db = db;
+    public IndexModel(AppDbContext db, ICurrentUserAccessor cu) : base(cu) => _db = db;
 
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty(SupportsGet = true)] public string? Category { get; set; }
@@ -20,6 +23,7 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)] public string? Sort { get; set; }
 
     public IList<Service> Services { get; private set; } = Array.Empty<Service>();
+    public IList<Service> Items => Services;
     public int TotalCount { get; private set; }
     public int VisibleCount { get; private set; }
 

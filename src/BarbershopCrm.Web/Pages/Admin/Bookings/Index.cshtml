@@ -2,25 +2,26 @@
 @using BarbershopCrm.Domain.Enums
 @model BarbershopCrm.Web.Pages.Admin.Bookings.IndexModel
 @{
-    ViewData["Title"] = "Записи";
+    ViewData["Title"] = "Журнал записей — Тихого Часа";
     ViewData["ManagementTab"] = "bookings";
 }
 
 <partial name="_ManagementTabs" />
 
-<section class="management-section">
+<section class="management-section animate-fade-in">
+    
     <div class="bookings-management-header">
         <div class="bookings-management-header__content">
-            <h2>Журнал записей</h2>
-            <p class="bookings-management-header__subtitle">Управление и мониторинг всех бронирований</p>
+            <span class="bookings-management-header__badge">Регистратура сети</span>
+            <h2>Журнал записей клиентов</h2>
+            <p class="bookings-management-header__subtitle">Сводный интерактивный поток всех сессий и бронирований</p>
         </div>
         <div class="bookings-management-header__actions">
-            <a asp-page="/Admin/Bookings/New" class="btn btn--primary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
+            <a asp-page="/Admin/Bookings/New" class="btn btn--primary btn--with-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                Создать запись
+                <span>Создать запись</span>
             </a>
         </div>
     </div>
@@ -30,21 +31,18 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
             </svg>
-            <h3>Фильтры</h3>
+            <h3>Параметры выборки журнала</h3>
         </div>
+        
         <form method="get" class="bookings-filters">
             @if (Model.BranchOptions.Count > 1)
             {
                 <div class="filter-group">
                     <label for="BranchId">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                        </svg>
-                        Филиал
+                        <span>Филиал точки</span>
                     </label>
                     <select id="BranchId" name="BranchId" class="input input--filter" onchange="this.form.submit()">
-                        <option value="">Все филиалы</option>
+                        <option value="">Все доступные локации</option>
                         @foreach (var b in Model.BranchOptions)
                         {
                             <option value="@b.Value" selected="@(Model.BranchId?.ToString() == b.Value)">@b.Text</option>
@@ -52,59 +50,40 @@
                     </select>
                 </div>
             }
+            
             <div class="filter-group">
-                <label for="From">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    Дата с
-                </label>
+                <label for="From"><span>Дата начала</span></label>
                 <input id="From" name="From" type="date" class="input input--filter" value="@Model.FromValue.ToString("yyyy-MM-dd")" />
             </div>
+            
             <div class="filter-group">
-                <label for="To">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    Дата по
-                </label>
+                <label for="To"><span>Дата окончания</span></label>
                 <input id="To" name="To" type="date" class="input input--filter" value="@Model.ToValue.ToString("yyyy-MM-dd")" />
             </div>
+            
             <div class="filter-group">
-                <label for="Status">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M12 6v6l4 2"></path>
-                    </svg>
-                    Статус
-                </label>
+                <label for="Status"><span>Текущий статус</span></label>
                 <select id="Status" name="Status" class="input input--filter" onchange="this.form.submit()">
-                    <option value="">Все статусы</option>
+                    <option value="">Все категории статусов</option>
                     @foreach (var s in Model.StatusOptions)
                     {
                         <option value="@s" selected="@(Model.Status == s)">@StatusLabels.BookingStatus(s)</option>
                     }
                 </select>
             </div>
-            <div class="filter-actions">
-                <button type="submit" class="btn btn--primary btn--filter">
+            
+            <div class="filter-actions-row">
+                <button type="submit" class="btn btn--accent btn--filter-action">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
-                    Применить
+                    <span>Применить</span>
                 </button>
-                <a asp-page="/Admin/Bookings/Index" class="btn btn--outline btn--filter">
+                <a asp-page="/Admin/Bookings/Index" class="btn btn--ghost btn--filter-action" title="Сбросить фильтры">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                        <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
-                    Сбросить
+                    <span>Сбросить</span>
                 </a>
             </div>
         </form>
@@ -112,133 +91,123 @@
 
     @if (!Model.Items.Any())
     {
-        <div class="empty-state">
-            <svg class="empty-state__icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            <h3 class="empty-state__title">Записей не найдено</h3>
-            <p class="empty-state__text">За выбранный период записей не найдено. Попробуйте изменить фильтры или создайте новую запись.</p>
-            <a asp-page="/Admin/Bookings/New" class="btn btn--primary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
+        <div class="premium-empty-state">
+            <div class="empty-state-illustration">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-                Создать запись
+            </div>
+            <h4>Записей не найдено</h4>
+            <p>За указанный временной диапазон бронирований с заданными параметрами в базе CRM не обнаружено.</p>
+            <a asp-page="/Admin/Bookings/New" class="btn btn--primary btn--sm" style="margin-top: 1rem;">
+                <span>Оформить новую запись</span>
             </a>
         </div>
     }
     else
     {
-        <div class="bookings-grid">
+        <div class="bookings-premium-grid-layout">
             @foreach (var b in Model.Items)
             {
-                <article class="booking-item booking-item--@b.Status.ToLowerInvariant() @(Model.HighlightBookingId == b.BookingId ? "booking-item--highlight" : "")" id="booking-@b.BookingId">
-                    <div class="booking-item__ribbon">
-                        <span class="booking-item__ribbon-text">@StatusLabels.BookingStatus(b.Status)</span>
+                var st = b.Status.ToLowerInvariant();
+                var isHighlighted = Model.HighlightBookingId == b.BookingId;
+                
+                var sourceCleanLabel = b.Source == "Lead" ? "По заявке" : StatusLabels.BookingSource(b.Source);
+
+                <article class="booking-feed-card booking-feed-card--status-@st @(isHighlighted ? "booking-feed-card--highlighted" : "")" id="booking-@b.BookingId">
+                    
+                    <div class="booking-feed-card__badge-bar">
+                        <span class="status-badge-node status-badge-node--@st">
+                            @StatusLabels.BookingStatus(b.Status)
+                        </span>
                     </div>
                     
-                    <div class="booking-item__header">
-                        <div class="booking-item__date-block">
-                            <div class="booking-item__day">@b.StartDateTime.ToString("dd")</div>
-                            <div class="booking-item__month">@b.StartDateTime.ToString("MMM", new System.Globalization.CultureInfo("ru-RU"))</div>
-                            <div class="booking-item__year">@b.StartDateTime.ToString("yyyy")</div>
+                    <div class="booking-feed-card__time-header">
+                        <div class="calendar-date-node">
+                            <span class="date-day">@b.StartDateTime.ToString("dd")</span>
+                            <div class="date-month-year">
+                                <span class="date-month">@b.StartDateTime.ToString("MMM", new System.Globalization.CultureInfo("ru-RU")).ToUpper()</span>
+                                <span class="date-year">@b.StartDateTime.ToString("yyyy")</span>
+                            </div>
                         </div>
-                        <div class="booking-item__time-block">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
+                        <div class="time-capsule-node">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
                             </svg>
-                            <span class="booking-item__time">@b.StartDateTime.ToString("HH:mm")</span>
+                            <span class="exact-time-text">@b.StartDateTime.ToString("HH:mm")</span>
                         </div>
                     </div>
 
-                    <div class="booking-item__body">
-                        <div class="booking-item__section">
-                            <div class="booking-item__client-card">
-                                <div class="booking-item__avatar">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="12" cy="7" r="4"></circle>
+                    <div class="booking-feed-card__main-body">
+                        
+                        <div class="booking-member-profile">
+                            <div class="member-avatar">
+                                @b.Client.Persona.ShortName.Substring(0, 1).ToUpper()
+                            </div>
+                            <div class="member-meta-details">
+                                <span class="member-role-label">Клиент салона</span>
+                                <strong class="member-name-text">@b.Client.Persona.ShortName</strong>
+                                <a href="tel:@b.Client.Persona.Phone.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "")" class="member-phone-link">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                                     </svg>
-                                </div>
-                                <div class="booking-item__client-info">
-                                    <span class="booking-item__client-label">Клиент</span>
-                                    <span class="booking-item__client-name">@b.Client.Persona.ShortName</span>
-                                    <a href="tel:@b.Client.Persona.Phone.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "")" class="booking-item__client-phone">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                                        </svg>
-                                        @b.Client.Persona.Phone
-                                    </a>
-                                </div>
+                                    <span>@b.Client.Persona.Phone</span>
+                                </a>
                             </div>
                         </div>
 
-                        <div class="booking-item__divider"></div>
+                        <div class="feed-card-divider"></div>
 
-                        <div class="booking-item__details">
-                            <div class="booking-item__detail">
-                                <div class="booking-item__detail-icon booking-item__detail-icon--service">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                                        <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                                    </svg>
-                                </div>
-                                <div class="booking-item__detail-content">
-                                    <span class="booking-item__detail-label">Услуга</span>
-                                    <span class="booking-item__detail-value">@b.Service.Name</span>
-                                </div>
-                            </div>
-
-                            <div class="booking-item__detail">
-                                <div class="booking-item__detail-icon booking-item__detail-icon--master">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="12" cy="7" r="4"></circle>
-                                    </svg>
-                                </div>
-                                <div class="booking-item__detail-content">
-                                    <span class="booking-item__detail-label">Мастер</span>
-                                    <span class="booking-item__detail-value">@b.Master.Persona.ShortName</span>
-                                </div>
-                            </div>
-
-                            <div class="booking-item__detail">
-                                <div class="booking-item__detail-icon booking-item__detail-icon--location">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                        <circle cx="12" cy="10" r="3"></circle>
-                                    </svg>
-                                </div>
-                                <div class="booking-item__detail-content">
-                                    <span class="booking-item__detail-label">Филиал</span>
-                                    <span class="booking-item__detail-value">@b.Branch.Name</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="booking-item__footer">
-                            <div class="booking-item__source-badge">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        <div class="booking-details-stack">
+                            <div class="detail-inline-node">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="detail-icon-service">
+                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
                                 </svg>
-                                @StatusLabels.BookingSource(b.Source)
+                                <div class="detail-text-box">
+                                    <small>Целевая услуга</small>
+                                    <strong>@b.Service.Name</strong>
+                                </div>
                             </div>
+
+                            <div class="detail-inline-node">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="detail-icon-master">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                <div class="detail-text-box">
+                                    <small>Специалист кресла</small>
+                                    <strong>@b.Master.Persona.ShortName</strong>
+                                </div>
+                            </div>
+
+                            <div class="detail-inline-node">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="detail-icon-branch">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <div class="detail-text-box">
+                                    <small>Локация филиала</small>
+                                    <strong>@b.Branch.Name</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="booking-feed-card__footer">
+                            <div class="source-pill-badge" title="Канал создания записи в системе">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                <span>@sourceCleanLabel</span>
+                            </div>
+                            
                             @if (b.Status == BookingStatus.Created || b.Status == BookingStatus.Confirmed)
                             {
-                                <form method="post" asp-page-handler="Cancel" asp-route-id="@b.BookingId" data-busy onsubmit="return confirm('Отменить запись клиента @b.Client.Persona.ShortName?')">
-                                    <button type="submit" class="booking-item__cancel-btn">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <line x1="15" y1="9" x2="9" y2="15"></line>
-                                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                                <form method="post" asp-page-handler="Cancel" asp-route-id="@b.BookingId" data-busy onsubmit="return confirm('Отменить текущую запись клиента @b.Client.Persona.ShortName в журнале?')">
+                                    <button type="submit" class="btn btn--ghost-danger btn--xs">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>
                                         </svg>
-                                        Отменить
+                                        <span>Отменить запись</span>
                                     </button>
                                 </form>
                             }

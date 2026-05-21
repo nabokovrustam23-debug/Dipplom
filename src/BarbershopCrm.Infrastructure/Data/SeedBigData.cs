@@ -1,5 +1,6 @@
 using BarbershopCrm.Domain.Entities;
 using BarbershopCrm.Domain.Enums;
+using BarbershopCrm.Infrastructure.Loyalty;
 using BarbershopCrm.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -105,34 +106,34 @@ public static class SeedBigData
                 var service = masterServices[i % masterServices.Count];
 
                 var discountPercent = 0m;
-                var discountReason = "None";
+                var discountReason = ILoyaltyDiscountResolver.ReasonNone;
 
                 if (isPast && completedCount == 0 && def.TargetVisits > 0)
                 {
                     discountPercent = 5m;
-                    discountReason = "FirstVisit";
+                    discountReason = ILoyaltyDiscountResolver.ReasonFirstVisit;
                 }
                 else if (def.BirthDate.HasValue && IsWithinBirthdayWindow(
                     DateOnly.FromDateTime(startTime), def.BirthDate.Value, 7))
                 {
                     discountPercent = 10m;
-                    discountReason = "Birthday";
+                    discountReason = ILoyaltyDiscountResolver.ReasonBirthday;
                 }
                 else if (completedCount >= 50)
                 {
                     discountPercent = 15m;
-                    discountReason = "Tier";
+                    discountReason = ILoyaltyDiscountResolver.ReasonTier;
                 }
                 else if (completedCount >= 10)
                 {
                     discountPercent = 10m;
-                    discountReason = "Tier";
+                    discountReason = ILoyaltyDiscountResolver.ReasonTier;
                 }
 
                 if (completedCount == 0 && !isPast)
                 {
                     discountPercent = 0m;
-                    discountReason = "None";
+                    discountReason = ILoyaltyDiscountResolver.ReasonNone;
                 }
 
                 var booking = new Booking
@@ -198,13 +199,27 @@ public static class SeedBigData
 
     private static bool IsWithinBirthdayWindow(DateOnly bookingDate, DateOnly birthDate, int windowDays)
     {
-        var birthdayThisYear = new DateOnly(bookingDate.Year, birthDate.Month, birthDate.Day);
-        if (birthDate.Month == 2 && birthDate.Day == 29 && !DateTime.IsLeapYear(bookingDate.Year))
-            birthdayThisYear = new DateOnly(bookingDate.Year, 2, 28);
-        var daysDiff = Math.Abs(bookingDate.DayNumber - birthdayThisYear.DayNumber);
-        var daysInYear = DateTime.IsLeapYear(bookingDate.Year) ? 366 : 365;
-        daysDiff = Math.Min(daysDiff, daysInYear - daysDiff);
-        return daysDiff <= windowDays;
+        var candidates = new[]
+        {
+            GetBirthdayForYear(bookingDate.Year - 1, birthDate),
+            GetBirthdayForYear(bookingDate.Year, birthDate),
+            GetBirthdayForYear(bookingDate.Year + 1, birthDate)
+        };
+
+        foreach (var bday in candidates)
+        {
+            if (Math.Abs(bookingDate.DayNumber - bday.DayNumber) <= windowDays)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static DateOnly GetBirthdayForYear(int year, DateOnly birthDate)
+    {
+        if (birthDate.Month == 2 && birthDate.Day == 29 && !DateTime.IsLeapYear(year))
+            return new DateOnly(year, 2, 28);
+        return new DateOnly(year, birthDate.Month, birthDate.Day);
     }
 
     private static List<ClientDef> DefineClients()

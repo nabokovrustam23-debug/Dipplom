@@ -1,364 +1,288 @@
 @page "/Owner/Analytics/Clients"
 @model BarbershopCrm.Web.Pages.Owner.Analytics.ClientsModel
 @{
-    ViewData["Title"] = "Аналитика клиентов";
+    ViewData["Title"] = "Аналитика и сегментация клиентов — Тихого Часа";
     ViewData["ManagementTab"] = "analytics";
 }
 
 <partial name="_ManagementTabs" />
 
-<!-- Улучшенный заголовок с иконкой -->
-<section class="management-header">
-    <div class="management-header__content">
-        <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2);">
-            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(184, 153, 104, 0.15), rgba(184, 153, 104, 0.05)); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border);">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B89968" stroke-width="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-            </div>
-            <div>
-                <h2 style="margin: 0;">Аналитика клиентов</h2>
-                <p class="management-header__subtitle" style="margin: 0;">@(Model.Snapshot?.BranchName ?? "Вся сеть")</p>
-            </div>
-        </div>
+<section class="analytics-header">
+    <div class="analytics-header__content">
+        <span class="analytics-header__badge">Маркетинговый анализ</span>
+        <h2>Сегментация и клиентская база</h2>
+        <p class="analytics-header__subtitle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+            </svg>
+            <span>Глубокий анализ аудитории филиала @(Model.Snapshot?.BranchName ?? "Вся сеть")</span>
+        </p>
     </div>
     <div class="management-header__actions">
         <a asp-page="/Owner/Analytics/Index"
            asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
            asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
            asp-route-branchid="@Model.BranchId"
-           class="btn btn--outline">
+           class="btn btn--outline btn--with-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            Общая аналитика
+            <span>К общим метрикам</span>
         </a>
     </div>
 </section>
 
-<!-- Улучшенные фильтры -->
-<section class="analytics-filters-card">
-    <div class="analytics-filters-header">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-        </svg>
-        <h3>Фильтры</h3>
-    </div>
-    <form method="get" class="analytics-filters" id="clientsFilterForm">
-        <div class="filter-group">
-            <label for="BranchId">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                </svg>
-                Филиал
-            </label>
-            <select id="BranchId" name="BranchId" class="input">
-                <option value="">Вся сеть</option>
-                @foreach (var b in Model.BranchOptions)
-                {
-                    <option value="@b.Value" selected="@(Model.BranchId?.ToString() == b.Value)">@b.Text</option>
-                }
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="From">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                Период с
-            </label>
-            <input id="From" name="From" type="date" class="input" value="@Model.FromValue.ToString("yyyy-MM-dd")" />
-        </div>
-        <div class="filter-group">
-            <label for="To">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                Период по
-            </label>
-            <input id="To" name="To" type="date" class="input" value="@Model.ToValue.ToString("yyyy-MM-dd")" />
-        </div>
-        <div class="filter-actions">
-            <button type="submit" class="btn btn--primary btn--filter">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Применить
-            </button>
-            <a asp-page="/Owner/Analytics/Clients" class="btn btn--outline btn--filter">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="1 4 1 10 7 10"></polyline>
-                    <polyline points="23 20 23 14 17 14"></polyline>
-                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
-                </svg>
-                Сбросить
-            </a>
-        </div>
-    </form>
-</section>
-
-@if (Model.Snapshot is not null)
-{
-    <!-- Экспорт с улучшенным дизайном -->
-    <section class="export-card-modern">
-        <div class="export-card-modern__icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
+<div class="analytics-controls-layout">
+    
+    <section class="analytics-filters-card">
+        <div class="analytics-filters-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
             </svg>
+            <h3>Параметры когорты</h3>
         </div>
-        <div class="export-card-modern__content">
-            <h3 class="export-card-modern__title">Экспорт данных клиентов</h3>
-            <p class="export-card-modern__desc">
-                Полный список клиентов с аналитикой
-                @(Model.Snapshot.BranchName is { Length: > 0 } b ? $"филиала «{b}»" : "по всей сети")
-                за период
-                <strong>@Model.FromValue.ToString("dd.MM.yyyy") — @Model.ToValue.ToString("dd.MM.yyyy")</strong>
-            </p>
-            <div class="export-card-modern__features">
-                <span class="export-feature">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
+        <form method="get" class="analytics-filters" id="clientsFilterForm">
+            <div class="filter-group">
+                <label for="BranchId"><span>Филиал сети</span></label>
+                <select id="BranchId" name="BranchId" class="input input--filter">
+                    <option value="">Вся сеть барбершопов</option>
+                    @foreach (var b in Model.BranchOptions)
+                    {
+                        <option value="@b.Value" selected="@(Model.BranchId?.ToString() == b.Value)">@b.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="From"><span>Дата с</span></label>
+                <input id="From" name="From" type="date" class="input input--filter" value="@Model.FromValue.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="filter-group">
+                <label for="To"><span>Дата по</span></label>
+                <input id="To" name="To" type="date" class="input input--filter" value="@Model.ToValue.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn btn--accent btn--filter">
+                    <span>Сформировать</span>
+                </button>
+                <a asp-page="/Owner/Analytics/Clients" class="btn btn--ghost btn--filter" title="Сбросить фильтры">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6M1 20v-6h6"></path>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
                     </svg>
-                    ABC-категории
-                </span>
-                <span class="export-feature">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                    Уровни лояльности
-                </span>
-                <span class="export-feature">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                    История визитов
-                </span>
+                </a>
+            </div>
+        </form>
+    </section>
+
+    <section class="export-banner-mini export-banner-mini--clients">
+        <div class="export-banner-mini__content">
+            <div class="export-banner-mini__text">
+                <h4>Выгрузка CRM-профилей клиентов</h4>
+                <p>Экспорт включает ФИО, телефоны, email, ABC-категории, уровни лояльности, предпочитаемых мастеров и объемы кассы.</p>
             </div>
         </div>
         <a asp-page="/Owner/Analytics/Clients" asp-page-handler="Export"
            asp-route-from="@Model.FromValue.ToString("yyyy-MM-dd")"
            asp-route-to="@Model.ToValue.ToString("yyyy-MM-dd")"
            asp-route-branchid="@Model.BranchId"
-           class="btn btn--primary export-card-modern__btn">
+           class="btn btn--outline-success btn--export">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            Скачать CSV
+            <span>Скачать базу (.CSV)</span>
         </a>
     </section>
+</div>
 
-    <!-- Сводка по сегментации с улучшенным дизайном -->
-    <section class="clients-summary-card">
-        <div class="clients-summary-card__header">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            <h2>Сводка по клиентам</h2>
-        </div>
-        <div class="clients-summary-grid">
-            <div class="summary-stat">
-                <div class="summary-stat__icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                </div>
-                <div class="summary-stat__content">
-                    <div class="summary-stat__label">Всего клиентов</div>
-                    <div class="summary-stat__value">@Model.Snapshot.TotalClients</div>
-                </div>
+@if (Model.Snapshot is not null)
+{
+    <div class="kpi-mini-row">
+        <div class="kpi-mini-card">
+            <span class="kpi-mini-card__label">Активная база за период</span>
+            <div class="kpi-mini-card__value-box">
+                <span class="kpi-mini-card__value">@Model.Snapshot.TotalClients</span>
+                <span class="kpi-mini-card__hint">уникальных гостей у кресла</span>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- ABC-анализ с улучшенным дизайном -->
-    <section class="abc-analysis-section">
-        <div class="abc-analysis-header">
-            <div class="abc-analysis-header__icon">
+    <section class="visual-chart-box visual-chart-box--full animate-fade-in">
+        <div class="visual-chart-box__header">
+            <div class="header-icon-title">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="1" x2="12" y2="23"></line>
                     <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                 </svg>
+                <h4>Классический ABC-анализ клиентских сегментов</h4>
             </div>
-            <div>
-                <h2>ABC-анализ клиентов</h2>
-                <p class="muted">Распределение клиентов по вкладу в выручку</p>
+            <p class="visual-chart-box__hint">Разделение базы по степени финансового вклада в общую кассу салона</p>
+        </div>
+
+        @{
+            var pctA = Model.Snapshot.AbcDistribution.CategoryARevenuePercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+            var pctB = Model.Snapshot.AbcDistribution.CategoryBRevenuePercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+            var pctC = Model.Snapshot.AbcDistribution.CategoryCRevenuePercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        <div class="abc-stacked-visual-container">
+            <div class="abc-stacked-bar">
+                <div class="abc-stacked-segment segment-abc-a" style="width: @(pctA)%" title="Категория А: сформировала @(pctA)% кассы"></div>
+                <div class="abc-stacked-segment segment-abc-b" style="width: @(pctB)%" title="Категория B: сформировала @(pctB)% кассы"></div>
+                <div class="abc-stacked-segment segment-abc-c" style="width: @(pctC)%" title="Категория C: сформировала @(pctC)% кассы"></div>
+            </div>
+            <div class="abc-stacked-bar-legends">
+                <span class="legend-item"><span class="legend-color block-abc-a"></span> Класс А (@(pctA)%)</span>
+                <span class="legend-item"><span class="legend-color block-abc-b"></span> Класс B (@(pctB)%)</span>
+                <span class="legend-item"><span class="legend-color block-abc-c"></span> Класс C (@(pctC)%)</span>
             </div>
         </div>
-        <div class="abc-grid">
-            <div class="abc-card abc-card--a">
-                <div class="abc-card__header">
-                    <span class="abc-card__badge">A</span>
-                    <span class="abc-card__title">Топ-клиенты</span>
-                </div>
-                <div class="abc-card__stats">
-                    <div class="abc-stat">
-                        <span class="abc-stat__label">Клиентов</span>
-                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryACount</span>
+
+        <div class="abc-premium-grid">
+            <div class="abc-p-card abc-p-card--a">
+                <div class="abc-p-card__badge">Класс А</div>
+                <h5 class="abc-p-card__title">Ядро / VIP-актив</h5>
+                <p class="abc-p-card__desc">Генерируют львиную долю выручки. Требуют максимального удержания.</p>
+                <div class="abc-p-card__metrics-row">
+                    <div class="p-metric">
+                        <small>Гостей</small>
+                        <strong>@Model.Snapshot.AbcDistribution.CategoryACount</strong>
                     </div>
-                    <div class="abc-stat">
-                        <span class="abc-stat__label">Выручка</span>
-                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryARevenue.ToString("N0") ₽</span>
-                    </div>
-                    <div class="abc-stat abc-stat--highlight">
-                        <span class="abc-stat__label">Доля выручки</span>
-                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryARevenuePercent.ToString("0.0")%</span>
-                    </div>
-                </div>
-                <div class="abc-card__progress">
-                    <div class="abc-progress-bar">
-                        <div class="abc-progress-fill abc-progress-fill--a" style="width: @Model.Snapshot.AbcDistribution.CategoryARevenuePercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                    <div class="p-metric text-right">
+                        <small>Принесли кассы</small>
+                        <strong class="text-color-green">@Model.Snapshot.AbcDistribution.CategoryARevenue.ToString("N0") ₽</strong>
                     </div>
                 </div>
             </div>
 
-            <div class="abc-card abc-card--b">
-                <div class="abc-card__header">
-                    <span class="abc-card__badge">B</span>
-                    <span class="abc-card__title">Средние клиенты</span>
-                </div>
-                <div class="abc-card__stats">
-                    <div class="abc-stat">
-                        <span class="abc-stat__label">Клиентов</span>
-                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryBCount</span>
+            <div class="abc-p-card abc-p-card--b">
+                <div class="abc-p-card__badge">Класс B</div>
+                <h5 class="abc-p-card__title">Стабильная опора</h5>
+                <p class="abc-p-card__desc">Ходят умеренно, платят стабильно. Потенциал для перевода в категорию А.</p>
+                <div class="abc-p-card__metrics-row">
+                    <div class="p-metric">
+                        <small>Гостей</small>
+                        <strong>@Model.Snapshot.AbcDistribution.CategoryBCount</strong>
                     </div>
-                    <div class="abc-stat">
-                        <span class="abc-stat__label">Выручка</span>
-                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryBRevenue.ToString("N0") ₽</span>
-                    </div>
-                    <div class="abc-stat abc-stat--highlight">
-                        <span class="abc-stat__label">Доля выручки</span>
-                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryBRevenuePercent.ToString("0.0")%</span>
-                    </div>
-                </div>
-                <div class="abc-card__progress">
-                    <div class="abc-progress-bar">
-                        <div class="abc-progress-fill abc-progress-fill--b" style="width: @Model.Snapshot.AbcDistribution.CategoryBRevenuePercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                    <div class="p-metric text-right">
+                        <small>Принесли кассы</small>
+                        <strong class="text-color-blue">@Model.Snapshot.AbcDistribution.CategoryBRevenue.ToString("N0") ₽</strong>
                     </div>
                 </div>
             </div>
 
-            <div class="abc-card abc-card--c">
-                <div class="abc-card__header">
-                    <span class="abc-card__badge">C</span>
-                    <span class="abc-card__title">Остальные клиенты</span>
-                </div>
-                <div class="abc-card__stats">
-                    <div class="abc-stat">
-                        <span class="abc-stat__label">Клиентов</span>
-                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryCCount</span>
+            <div class="abc-p-card abc-p-card--c">
+                <div class="abc-p-card__badge">Класс C</div>
+                <h5 class="abc-p-card__title">Разовые / Новички</h5>
+                <p class="abc-p-card__desc">Низкий чек или редкие заходы. Много спящих клиентов или случайных стрижек.</p>
+                <div class="abc-p-card__metrics-row">
+                    <div class="p-metric">
+                        <small>Гостей</small>
+                        <strong>@Model.Snapshot.AbcDistribution.CategoryCCount</strong>
                     </div>
-                    <div class="abc-stat">
-                        <span class="abc-stat__label">Выручка</span>
-                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryCRevenue.ToString("N0") ₽</span>
-                    </div>
-                    <div class="abc-stat abc-stat--highlight">
-                        <span class="abc-stat__label">Доля выручки</span>
-                        <span class="abc-stat__value">@Model.Snapshot.AbcDistribution.CategoryCRevenuePercent.ToString("0.0")%</span>
-                    </div>
-                </div>
-                <div class="abc-card__progress">
-                    <div class="abc-progress-bar">
-                        <div class="abc-progress-fill abc-progress-fill--c" style="width: @Model.Snapshot.AbcDistribution.CategoryCRevenuePercent.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                    <div class="p-metric text-right">
+                        <small>Принесли кассы</small>
+                        <strong class="text-color-orange">@Model.Snapshot.AbcDistribution.CategoryCRevenue.ToString("N0") ₽</strong>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Распределение по уровням -->
-    <section class="card">
-        <div class="card__header">
-            <h2>Распределение по уровням лояльности</h2>
-            <p class="muted">Сегментация клиентов по количеству визитов</p>
+    <section class="visual-chart-box visual-chart-box--full">
+        <div class="visual-chart-box__header">
+            <h4>Распределение базы по накопленным грейдам лояльности</h4>
+            <p class="visual-chart-box__hint">Разделение аудитории на основе исторического объема выполненных сессий</p>
         </div>
-        <div class="tier-grid">
-            <div class="tier-card tier-card--new">
-                <div class="tier-card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-                <div class="tier-card__title">Новые</div>
-                <div class="tier-card__count">@Model.Snapshot.TierDistribution.NewCount</div>
-                <div class="tier-card__desc">1 визит</div>
+        <div class="premium-tier-dashboard-grid">
+            <div class="premium-tier-card tier-border-new">
+                <div class="premium-tier-card__icon icon-bg-new">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </div>
+                <div class="premium-tier-card__meta">
+                    <span class="tier-name">Новые клиенты</span>
+                    <span class="tier-condition">1 выполненный визит</span>
+                </div>
+                <div class="premium-tier-card__count text-color-new">@Model.Snapshot.TierDistribution.NewCount</div>
             </div>
-            <div class="tier-card tier-card--regular">
-                <div class="tier-card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-                <div class="tier-card__title">Постоянные</div>
-                <div class="tier-card__count">@Model.Snapshot.TierDistribution.RegularCount</div>
-                <div class="tier-card__desc">2-5 визитов</div>
+
+            <div class="premium-tier-card tier-border-regular">
+                <div class="premium-tier-card__icon icon-bg-regular">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div class="premium-tier-card__meta">
+                    <span class="tier-name">Постоянные</span>
+                    <span class="tier-condition">От 2 до 5 визитов</span>
+                </div>
+                <div class="premium-tier-card__count text-color-regular">@Model.Snapshot.TierDistribution.RegularCount</div>
             </div>
-            <div class="tier-card tier-card--loyal">
-                <div class="tier-card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-                <div class="tier-card__title">Лояльные</div>
-                <div class="tier-card__count">@Model.Snapshot.TierDistribution.LoyalCount</div>
-                <div class="tier-card__desc">6-10 визитов</div>
+
+            <div class="premium-tier-card tier-border-loyal">
+                <div class="premium-tier-card__icon icon-bg-loyal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+                <div class="premium-tier-card__meta">
+                    <span class="tier-name">Лояльные</span>
+                    <span class="tier-condition">От 6 до 10 визитов</span>
+                </div>
+                <div class="premium-tier-card__count text-color-loyal">@Model.Snapshot.TierDistribution.LoyalCount</div>
             </div>
-            <div class="tier-card tier-card--vip">
-                <div class="tier-card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 19l2-14 4 6 4-6 4 6 4-6 2 14H2z"/><path d="M7 19l2-6 3 2 3-2 2 6"/></svg></div>
-                <div class="tier-card__title">VIP</div>
-                <div class="tier-card__count">@Model.Snapshot.TierDistribution.VipCount</div>
-                <div class="tier-card__desc">11+ визитов</div>
+
+            <div class="premium-tier-card tier-border-vip">
+                <div class="premium-tier-card__icon icon-bg-vip">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 19l2-14 4 6 4-6 4 6 4-6 2 14H2z"/><path d="M7 19l2-6 3 2 3-2 2 6"/></svg>
+                </div>
+                <div class="premium-tier-card__meta">
+                    <span class="tier-name">Премиум / VIP</span>
+                    <span class="tier-condition">11 и более визитов</span>
+                </div>
+                <div class="premium-tier-card__count text-color-vip">@Model.Snapshot.TierDistribution.VipCount</div>
             </div>
         </div>
     </section>
 
-    <!-- Топ-20 клиентов с улучшенным дизайном -->
-    <section class="clients-table-section">
-        <div class="clients-table-header">
-            <div class="clients-table-header__icon">
+    <section class="visual-chart-box visual-chart-box--full">
+        <div class="visual-chart-box__header">
+            <div class="header-icon-title">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="8.5" cy="7" r="4"></circle>
-                    <polyline points="17 11 19 13 23 9"></polyline>
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/>
                 </svg>
+                <h4>Рейтинговый журнал: ТОП-20 ключевых клиентов</h4>
             </div>
-            <h2>Топ-20 клиентов по выручке</h2>
+            <p class="visual-chart-box__hint">Список клиентов с наивысшим чеком и накопленным объемом инвестиций в сеть за период</p>
         </div>
+
         @if (Model.Snapshot.TopClients.Any())
         {
-            <div class="table-wrapper">
-                <table class="clients-table">
+            <div class="premium-table-container">
+                <table class="premium-table premium-table--crm-clients">
                     <thead>
                         <tr>
-                            <th>ABC</th>
-                            <th>Уровень</th>
-                            <th>Клиент</th>
-                            <th>Контакты</th>
-                            <th class="text-right">Визитов</th>
-                            <th class="text-right">Выручка</th>
-                            <th class="text-right">Средний чек</th>
-                            <th>Последний визит</th>
-                            <th>Предпочтения</th>
+                            <th style="width: 70px; text-align: center;">Класс</th>
+                            <th style="width: 120px;">Грейд</th>
+                            <th>ФИО Клиента</th>
+                            <th>Контакты связи</th>
+                            <th style="text-align: center;">Визиты</th>
+                            <th style="text-align: right;">Суммарная касса</th>
+                            <th style="text-align: right;">Ср. чек</th>
+                            <th style="width: 150px;">Последний сеанс</th>
+                            <th>Постоянный фокус</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var client in Model.Snapshot.TopClients)
                         {
-                            <tr class="clients-table__row">
-                                <td>
-                                    <span class="badge-modern badge-modern--@(client.AbcCategory.ToString().ToLower())">
+                            <tr>
+                                <td style="text-align: center;">
+                                    <span class="badge-abc-pill badge-abc-pill--@(client.AbcCategory.ToString().ToLower())">
                                         @client.AbcCategory
                                     </span>
                                 </td>
+                                
                                 <td>
-                                    <span class="badge-modern badge-modern--tier-@(client.Tier.ToString().ToLower())">
+                                    <span class="badge-tier-pill badge-tier-pill--@(client.Tier.ToString().ToLower())">
                                         @switch (client.Tier)
                                         {
                                             case BarbershopCrm.Infrastructure.Analytics.ClientTier.New:
@@ -376,76 +300,67 @@
                                         }
                                     </span>
                                 </td>
+                                
                                 <td>
-                                    <div class="client-name">
-                                        <div class="client-avatar">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                                <circle cx="12" cy="7" r="4"></circle>
-                                            </svg>
+                                    <div class="table-client-profile">
+                                        <div class="table-client-avatar">
+                                            @(string.IsNullOrEmpty(client.ClientName) ? "?" : client.ClientName.Substring(0, 1).ToUpper())
                                         </div>
-                                        <strong>@client.ClientName</strong>
+                                        <strong class="table-client-name-text">@client.ClientName</strong>
                                     </div>
                                 </td>
-                                <td class="client-contacts">
+                                
+                                <td class="table-contacts-cell">
                                     @if (!string.IsNullOrEmpty(client.Phone))
                                     {
-                                        <div class="contact-item">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                                            </svg>
-                                            @client.Phone
+                                        <div class="contact-sub-item">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                            <span>@client.Phone</span>
                                         </div>
                                     }
                                     @if (!string.IsNullOrEmpty(client.Email))
                                     {
-                                        <div class="contact-item">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                                                <polyline points="22,6 12,13 2,6"/>
-                                            </svg>
-                                            @client.Email
+                                        <div class="contact-sub-item contact-sub-item--email">
+                                            <span>@client.Email</span>
                                         </div>
                                     }
                                 </td>
-                                <td class="text-right">
-                                    <span class="stat-number">@client.TotalVisits</span>
+                                
+                                <td style="text-align: center;" class="table-numeric-bold">
+                                    @client.TotalVisits
                                 </td>
-                                <td class="text-right">
-                                    <strong class="revenue-value">@client.TotalRevenue.ToString("N0") ₽</strong>
+                                
+                                <td style="text-align: right;" class="table-currency-highlight">
+                                    @client.TotalRevenue.ToString("N0") ₽
                                 </td>
-                                <td class="text-right">
-                                    <span class="stat-number">@client.AverageTicket.ToString("N0") ₽</span>
+                                
+                                <td style="text-align: right;" class="table-numeric-gray-bold">
+                                    @client.AverageTicket.ToString("N0") ₽
                                 </td>
+                                
                                 <td>
-                                    <div class="visit-info">
-                                        <div class="visit-date">@client.LastVisitDate.ToString("dd.MM.yyyy")</div>
-                                        <div class="visit-ago">@client.DaysSinceLastVisit дн. назад</div>
+                                    <div class="table-visit-timeline">
+                                        <span class="timeline-exact-date">@client.LastVisitDate.ToString("dd.MM.yyyy")</span>
+                                        <span class="timeline-days-ago">@client.DaysSinceLastVisit дн. назад</span>
                                     </div>
                                 </td>
-                                <td class="client-preferences">
-                                    @if (!string.IsNullOrEmpty(client.PreferredMaster))
-                                    {
-                                        <div class="preference-item">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                                <circle cx="12" cy="7" r="4"/>
-                                            </svg>
-                                            @client.PreferredMaster
-                                        </div>
-                                    }
-                                    @if (!string.IsNullOrEmpty(client.PreferredService))
-                                    {
-                                        <div class="preference-item">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M20.94 11h-2.08A5.98 5.98 0 0 0 14 6.14V4h-4v2.14A5.98 5.98 0 0 0 5.14 11H3.06a.5.5 0 0 0-.5.54A9 9 0 0 0 12 20a9 9 0 0 0 9.38-8.46.5.5 0 0 0-.44-.54z"/>
-                                                <circle cx="12" cy="15" r="2"/>
-                                                <line x1="4" y1="14" x2="3" y2="14"/>
-                                                <line x1="21" y1="14" x2="20" y2="14"/>
-                                            </svg>
-                                            @client.PreferredService
-                                        </div>
-                                    }
+                                
+                                <td>
+                                    <div class="table-preferences-stack">
+                                        @if (!string.IsNullOrEmpty(client.PreferredMaster))
+                                        {
+                                            <span class="pref-tag pref-tag--master" title="Любимый мастер барбершопа">
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                                @client.PreferredMaster
+                                            </span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(client.PreferredService))
+                                        {
+                                            <span class="pref-tag pref-tag--service" title="Частая услуга">
+                                                @client.PreferredService
+                                            </span>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -455,16 +370,9 @@
         }
         else
         {
-            <div class="empty-state">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <p>Нет данных о клиентах за выбранный период</p>
+            <div class="visual-chart-box__empty">
+                <p>Выбранные сегменты пусты. Нет данных о клиентах за указанный период времени.</p>
             </div>
         }
     </section>
 }
-
-<!-- Made with Bob -->

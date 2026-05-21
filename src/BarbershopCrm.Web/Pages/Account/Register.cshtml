@@ -1,11 +1,11 @@
 @page
 @model BarbershopCrm.Web.Pages.Account.RegisterModel
 @{
-    ViewData["Title"] = "Регистрация клиента";
+    ViewData["Title"] = "Регистрация клиента — Тихого Часа";
     Layout = "_AuthLayout";
 }
 
-<section class="auth-split">
+<section class="auth-split animate-fade-in">
     <aside class="auth-split__hero" aria-hidden="true">
         <div class="auth-split__hero-overlay">
             <a asp-page="/Index" class="auth-split__brand">
@@ -15,109 +15,128 @@
                     <span class="auth-split__brand-tag">Барбершоп · Краснодар</span>
                 </div>
             </a>
+            
             <div class="auth-split__hero-body">
                 <div class="auth-split__quote">
-                    <p>«Запишитесь к любимому мастеру в пару кликов. Без звонков и ожиданий — пока вы наслаждаетесь тихим часом, мы держим место за вами.»</p>
+                    <p>«Запишитесь к любимому мастеру в пару кликов. Без звонков и ожиданий — пока вы наслаждаетесь спокойным отдыхом, мы держим место за вами.»</p>
                 </div>
                 <ul class="auth-split__bullets">
-                    <li>История ваших визитов и любимых услуг</li>
-                    <li>Напоминания о ближайших записях</li>
-                    <li>Только онлайн-запись, никаких бумажных журналов</li>
+                    <li>
+                        <span class="bullet-dot"></span>
+                        <span>Исторический журнал ваших выполненных визитов и избранных услуг</span>
+                    </li>
+                    <li>
+                        <span class="bullet-dot"></span>
+                        <span>Автоматические напоминания и контроль статуса ближайших сессий</span>
+                    </li>
+                    <li>
+                        <span class="bullet-dot"></span>
+                        <span>Современный онлайн-контроль бронирования в обход бумажных журналов</span>
+                    </li>
                 </ul>
             </div>
-            <div class="auth-split__hero-foot faint">© @DateTime.Now.Year · Краснодар</div>
+            
+            <div class="auth-split__hero-foot faint">© @DateTime.Now.Year · Сеть барбершопов «Тихий час»</div>
         </div>
     </aside>
 
     <div class="auth-split__panel">
         <div class="auth-split__panel-inner auth-split__panel-inner--wide">
             <header class="auth-split__header">
-                <a asp-page="/Index" class="auth-split__back">← На главную</a>
-                <h1>Создайте аккаунт</h1>
-                <p class="muted">Заполните короткую анкету — записываться и отменять брони можно сразу после регистрации.</p>
+                <a asp-page="/Index" class="auth-split__back">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 4px; vertical-align: middle;">
+                        <line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>На главную страницу</span>
+                </a>
+                <h1>Создайте аккаунт гостя</h1>
+                <p class="muted">Заполните короткую анкету. Управление записями и программа лояльности станут доступны сразу.</p>
             </header>
 
             @if (!string.IsNullOrEmpty(Model.ErrorMessage))
             {
-                <div class="flash flash--error" role="alert">@Model.ErrorMessage</div>
+                <div class="alert alert--error alert--modern" style="margin-bottom: 1.5rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line></svg>
+                    <span>@Model.ErrorMessage</span>
+                </div>
             }
 
             <form method="post" novalidate class="auth-form">
-                <div class="field-row">
-                    <div class="field auth-field">
-                        <label asp-for="Input.LastName" class="auth-field__label">Фамилия</label>
-                        <div class="auth-field__control">
-                            <input asp-for="Input.LastName" autocomplete="family-name" required placeholder="Иванов" />
-                        </div>
+                <div class="filter-form-grid" style="margin-bottom: 1rem; gap: 1rem;">
+                    <div class="filter-field-box">
+                        <label asp-for="Input.LastName" class="form-label-dark">Фамилия</label>
+                        <input asp-for="Input.LastName" autocomplete="family-name" class="input input--hub" required placeholder="Иванов" />
                         <span asp-validation-for="Input.LastName" class="field-error"></span>
                     </div>
-                    <div class="field auth-field">
-                        <label asp-for="Input.FirstName" class="auth-field__label">Имя</label>
-                        <div class="auth-field__control">
-                            <input asp-for="Input.FirstName" autocomplete="given-name" required placeholder="Иван" />
-                        </div>
+                    <div class="filter-field-box">
+                        <label asp-for="Input.FirstName" class="form-label-dark">Имя</label>
+                        <input asp-for="Input.FirstName" autocomplete="given-name" class="input input--hub" required placeholder="Иван" />
                         <span asp-validation-for="Input.FirstName" class="field-error"></span>
                     </div>
                 </div>
 
-                <div class="field auth-field">
-                    <label asp-for="Input.MiddleName" class="auth-field__label">Отчество <span class="faint">— по желанию</span></label>
-                    <div class="auth-field__control">
-                        <input asp-for="Input.MiddleName" autocomplete="additional-name" placeholder="Сергеевич" />
-                    </div>
+                <div class="field auth-field" style="margin-bottom: 1rem;">
+                    <label asp-for="Input.MiddleName" class="form-label-dark">Отчество <span class="faint" style="font-weight: 400; font-size: 0.85rem;">— если есть</span></label>
+                    <input asp-for="Input.MiddleName" autocomplete="additional-name" class="input input--hub" placeholder="Сергеевич" />
                     <span asp-validation-for="Input.MiddleName" class="field-error"></span>
                 </div>
 
-                <div class="field auth-field">
-                    <label asp-for="Input.Phone" class="auth-field__label">Телефон</label>
-                    <div class="auth-field__control">
-                        <span class="auth-field__icon" aria-hidden="true">☎</span>
-                        <input asp-for="Input.Phone" type="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required />
+                <div class="field auth-field" style="margin-bottom: 1rem;">
+                    <label asp-for="Input.Phone" class="form-label-dark">Номер мобильного телефона</label>
+                    <div class="input-with-icon-layout">
+                        <span class="search-icon-inside" style="font-size: 0.85rem; color: var(--color-text-muted); font-weight: 500;">☎</span>
+                        <input asp-for="Input.Phone" type="tel" autocomplete="tel" class="input input--hub tnum" style="padding-left: 36px;" placeholder="+7 (999) 000-00-00" required />
                     </div>
                     <span asp-validation-for="Input.Phone" class="field-error"></span>
                 </div>
 
-                <div class="field auth-field">
-                    <label asp-for="Input.Email" class="auth-field__label">Email</label>
-                    <div class="auth-field__control">
-                        <span class="auth-field__icon" aria-hidden="true">@@</span>
-                        <input asp-for="Input.Email" type="email" autocomplete="email" required placeholder="ivan@example.com" />
+                <div class="field auth-field" style="margin-bottom: 1rem;">
+                    <label asp-for="Input.Email" class="form-label-dark">Электронная почта (Email)</label>
+                    <div class="input-with-icon-layout">
+                        <span class="search-icon-inside" style="font-size: 0.85rem; color: var(--color-text-muted); font-weight: 500;">@@</span>
+                        <input asp-for="Input.Email" type="email" autocomplete="email" class="input input--hub" style="padding-left: 36px;" required placeholder="ivan@example.com" />
                     </div>
                     <span asp-validation-for="Input.Email" class="field-error"></span>
                 </div>
 
-                <div class="field-row">
-                    <div class="field auth-field">
-                        <label asp-for="Input.Password" class="auth-field__label">Пароль</label>
-                        <div class="auth-field__control">
-                            <span class="auth-field__icon" aria-hidden="true">●</span>
-                            <input asp-for="Input.Password" type="password" autocomplete="new-password" required placeholder="не короче 8 символов" />
+                <div class="filter-form-grid" style="margin-bottom: 1.5rem; gap: 1rem;">
+                    <div class="filter-field-box">
+                        <label asp-for="Input.Password" class="form-label-dark">Пароль</label>
+                        <div class="input-with-icon-layout">
+                            <span class="search-icon-inside" style="font-size: 0.7rem; color: var(--color-text-muted);">●</span>
+                            <input asp-for="Input.Password" type="password" autocomplete="new-password" class="input input--hub" style="padding-left: 36px;" required placeholder="минимум 8 знаков" />
                         </div>
                         <span asp-validation-for="Input.Password" class="field-error"></span>
                     </div>
-                    <div class="field auth-field">
-                        <label asp-for="Input.PasswordRepeat" class="auth-field__label">Повторите пароль</label>
-                        <div class="auth-field__control">
-                            <span class="auth-field__icon" aria-hidden="true">●</span>
-                            <input asp-for="Input.PasswordRepeat" type="password" autocomplete="new-password" required placeholder="ещё раз" />
+                    <div class="filter-field-box">
+                        <label asp-for="Input.PasswordRepeat" class="form-label-dark">Повторите пароль</label>
+                        <div class="input-with-icon-layout">
+                            <span class="search-icon-inside" style="font-size: 0.7rem; color: var(--color-text-muted);">●</span>
+                            <input asp-for="Input.PasswordRepeat" type="password" autocomplete="new-password" class="input input--hub" style="padding-left: 36px;" required placeholder="ещё раз" />
                         </div>
                         <span asp-validation-for="Input.PasswordRepeat" class="field-error"></span>
                     </div>
                 </div>
 
-                <label class="checkbox">
-                    <input asp-for="Input.AcceptTerms" type="checkbox" required />
-                    <span>Соглашаюсь с <a asp-page="/Privacy">обработкой персональных данных</a> по 152-ФЗ.</span>
-                </label>
-                <span asp-validation-for="Input.AcceptTerms" class="field-error"></span>
+                <div class="checkbox-container" style="margin-bottom: 2rem;">
+                    <label class="checkbox" style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; user-select: none;">
+                        <input asp-for="Input.AcceptTerms" type="checkbox" required style="margin-top: 3px;" />
+                        <span style="font-size: 0.85rem; line-height: 1.4; color: var(--color-text-muted);">
+                            Я подтверждаю свое согласие на <a asp-page="/Privacy" style="color: var(--color-primary); text-decoration: none;">обработку персональных данных</a> в соответствии с Федеральным законом № 152-ФЗ.
+                        </span>
+                    </label>
+                    <span asp-validation-for="Input.AcceptTerms" class="field-error" style="display: block; margin-top: 0.25rem;"></span>
+                </div>
 
-                <button type="submit" class="btn btn--primary auth-form__submit">Создать аккаунт</button>
+                <button type="submit" class="btn btn--primary btn--full-width">
+                    <span>Зарегистрировать профиль</span>
+                </button>
             </form>
 
-            <div class="auth-split__divider"><span>или</span></div>
+            <div class="auth-split__divider" style="margin: 2rem 0;"><span>или</span></div>
 
-            <p class="auth-split__signup">
-                Уже есть аккаунт? <a asp-page="/Account/Login">Войти</a>
+            <p class="auth-split__signup" style="text-align: center; color: var(--color-text-muted);">
+                Уже создавали аккаунт ранее? <a asp-page="/Account/Login" style="color: var(--color-primary); font-weight: 600; text-decoration: none;">Выполнить вход</a>
             </p>
         </div>
     </div>

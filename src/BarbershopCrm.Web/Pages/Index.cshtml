@@ -1,110 +1,136 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "Главная";
+    ViewData["Title"] = "Главное пространство стиля";
 }
 
-<section class="hero hero--home">
-    <div class="hero__inner">
-        <p class="hero__eyebrow">Премиальный барбершоп · Краснодар</p>
-        <h1 class="hero__title">Тихий час</h1>
-        <p class="hero__lead">Место, где классика встречается с современностью. Профессиональные мастера, удобная онлайн-запись и безупречный сервис для тех, кто ценит качество.</p>
-        <div class="hero__cta">
+<section class="hero-premium-viewport">
+    <div class="hero-premium-viewport__overlay"></div>
+    <div class="hero-premium-viewport__inner">
+        <span class="hero-premium-eyebrow">Премиальная сеть мужских парикмахерских</span>
+        <h1 class="hero-premium-title">Тихий час</h1>
+        <p class="hero-premium-lead">Классические традиции стрижки и опасного бритья в атмосфере уединения. Профессиональные мастера, прозрачная лояльность и безупречный цифровой сервис для мужчин, ценящих своё время.</p>
+        
+        <div class="hero-premium-cta-row">
             @if (Model.IsAuthenticated && Model.Current?.RoleCode == RoleCode.Client)
             {
-                <a class="btn btn--soft" asp-page="/BookingFlow/New">Записаться онлайн</a>
+                <a class="btn btn--primary btn--large" asp-page="/BookingFlow/New">Выбрать время онлайн</a>
             }
             else if (!Model.IsAuthenticated)
             {
-                <a class="btn btn--soft" asp-page="/Lead/Index">Оставить заявку</a>
+                <a class="btn btn--primary btn--large" asp-page="/Lead/Index">Оставить быструю заявку</a>
             }
-            <a class="btn btn--ghost" asp-page="/Services/Index">Прайс-лист</a>
-            @if (!Model.IsAuthenticated)
-            {
-                <a class="btn btn--ghost" asp-page="/Account/Login">Войти в кабинет</a>
-            }
+            
+            <a class="btn btn--outline btn--large" asp-page="/Services/Index" style="border-color: rgba(255,255,255,0.3); color: #fff;">
+                <span>Изучить прейскурант</span>
+            </a>
         </div>
     </div>
 </section>
 
-<section class="features">
-    <article class="feature">
-        <div class="feature__icon" aria-hidden="true">⏱</div>
-        <h3>Запись за минуту</h3>
-        <p class="muted">Выбираете услугу, мастера и удобный слот. Подтверждение приходит на email и в личный кабинет.</p>
+<section class="request-features-stack features-landing-cluster" style="margin-top: -3rem; position: relative; z-index: 10; padding: 0 var(--space-4); display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+    <article class="visual-chart-box feature-landing-node" style="margin: 0; padding: 2rem;">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">⏱</div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Онлайн-запись за минуту</h3>
+        <p class="comment-text" style="margin: 0;">Интуитивный выбор филиала, услуги и свободного мастера. Мгновенное подтверждение в личный кабинет.</p>
     </article>
-    <article class="feature">
-        <div class="feature__icon" aria-hidden="true">✂</div>
-        <h3>Опытные мастера</h3>
-        <p class="muted">Команда профессиональных барберов с многолетним стажем — классические стрижки, бритьё, оформление бороды.</p>
+    
+    <article class="visual-chart-box feature-landing-node" style="margin: 0; padding: 2rem;">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">✂</div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Экспертная команда</h3>
+        <p class="comment-text" style="margin: 0;">Сертифицированные барберы с многолетним стажем. Безупречное владение техниками классических стрижек и ухода.</p>
     </article>
-    <article class="feature">
-        <div class="feature__icon" aria-hidden="true">⚑</div>
-        <h3>Удобное расположение</h3>
-        <p class="muted">Несколько филиалов в разных районах города. Единый прайс, одинаковое качество обслуживания.</p>
+    
+    <article class="visual-chart-box feature-landing-node" style="margin: 0; padding: 2rem;">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">📍</div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Развитая сеть точек</h3>
+        <p class="comment-text" style="margin: 0;">Удобные локации в ключевых районах Краснодара. Единые стандарты сервиса и фиксированный прайс.</p>
     </article>
 </section>
 
-<div class="divider"></div>
+<section class="landing-showcase-section" style="margin-top: 4rem;">
+    <div class="visual-chart-box__header" style="padding: 0; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h4 style="margin: 0; font-size: 1.5rem;">Наши действующие филиалы</h4>
+            <p class="visual-chart-box__hint" style="margin: 0;">Выберите удобный салон для бронирования времени</p>
+        </div>
+        <a class="btn btn--ghost btn--sm" asp-page="/Branches/Index">Посмотреть все филиалы сети →</a>
+    </div>
 
-<header class="section-header">
-    <h2>Филиалы</h2>
-    <a class="link-more" asp-page="/Branches/Index">Все филиалы →</a>
-</header>
-
-<div class="grid-3" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: var(--space-4);">
-    @foreach (var branch in Model.Branches)
-    {
-        <article class="card branch-card">
-            @if (!string.IsNullOrEmpty(branch.ImageUrl))
-            {
-                <img class="image-thumb branch-card__image" src="@branch.ImageUrl" alt="" loading="lazy" />
-            }
-            else
-            {
-                <div class="image-thumb image-placeholder branch-card__image" aria-hidden="true">
-                    <img src="~/images/branch-placeholder.svg" alt="" style="width:48px;height:48px;" />
+    <div class="services-premium-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+        @foreach (var branch in Model.Branches)
+        {
+            <article class="service-display-card">
+                <div class="service-display-card__media">
+                    @if (!string.IsNullOrEmpty(branch.ImageUrl))
+                    {
+                        <img class="service-image-fluid" src="@branch.ImageUrl" alt="" loading="lazy" />
+                    }
+                    else
+                    {
+                        <div class="service-placeholder-media-box" aria-hidden="true">
+                            <img src="~/images/branch-placeholder.svg" alt="" class="placeholder-svg" style="width:48px;height:48px;" />
+                        </div>
+                    }
                 </div>
-            }
-            <h3><a asp-page="/Branches/Details" asp-route-id="@branch.BranchId">@branch.Name</a></h3>
-            <p class="muted">@branch.Address</p>
-            <p class="faint tnum">@branch.OpeningTime.ToString("HH:mm") – @branch.ClosingTime.ToString("HH:mm")</p>
-            @if (!string.IsNullOrWhiteSpace(branch.Phone))
-            {
-                <p class="muted tnum">@branch.Phone</p>
-            }
-        </article>
-    }
-</div>
-
-<div class="divider"></div>
-
-<header class="section-header">
-    <h2>Услуги</h2>
-    <a class="link-more" asp-page="/Services/Index">Весь прайс →</a>
-</header>
-
-<div class="grid-3" style="margin-top: var(--space-4);">
-    @foreach (var service in Model.Services.Take(6))
-    {
-        <article class="card service-card">
-            @if (!string.IsNullOrEmpty(service.ImageUrl))
-            {
-                <img class="image-thumb service-card__image" src="@service.ImageUrl" alt="" loading="lazy" />
-            }
-            else
-            {
-                <div class="image-thumb image-placeholder service-card__image" aria-hidden="true">
-                    <img src="~/images/service-placeholder.svg" alt="" style="width:56px;height:56px;" />
+                
+                <div class="service-display-card__body" style="padding: 1.25rem;">
+                    <h3 class="service-card-name" style="font-size: 1.15rem; margin-bottom: 0.5rem;">
+                        <a asp-page="/Branches/Details" asp-route-id="@branch.BranchId" style="color: var(--color-text-main); text-decoration: none;">@branch.Name</a>
+                    </h3>
+                    <p class="service-card-description" style="font-size: 0.85rem; margin-bottom: 0.75rem;">@branch.Address</p>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--color-text-muted);" class="tnum">
+                        <span>Смена: @branch.OpeningTime.ToString("HH:mm") – @branch.ClosingTime.ToString("HH:mm")</span>
+                        @if (!string.IsNullOrWhiteSpace(branch.Phone))
+                        {
+                            <span style="font-weight: 500;">@branch.Phone</span>
+                        }
+                    </div>
                 </div>
-            }
-            <h3>@service.Name</h3>
-            @if (!string.IsNullOrWhiteSpace(service.Description))
-            {
-                <p class="muted">@service.Description</p>
-            }
-            <p class="faint tnum">@service.DurationMinutes мин</p>
-            <div class="price tnum">@service.Price.ToString("0") ₽</div>
-        </article>
-    }
-</div>
+            </article>
+        }
+    </div>
+</section>
+
+<section class="landing-showcase-section" style="margin-top: 5rem; margin-bottom: 5rem;">
+    <div class="visual-chart-box__header" style="padding: 0; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h4 style="margin: 0; font-size: 1.5rem;">Популярные сессии ухода</h4>
+            <p class="visual-chart-box__hint" style="margin: 0;">Базовый прейскурант мужского зала «Тихого Часа»</p>
+        </div>
+        <a class="btn btn--ghost btn--sm" asp-page="/Services/Index">Открыть полный прайс-лист →</a>
+    </div>
+
+    <div class="services-premium-grid">
+        @foreach (var service in Model.Services.Take(6))
+        {
+            <article class="service-display-card">
+                <div class="service-display-card__media" style="height: 160px;">
+                    @if (!string.IsNullOrEmpty(service.ImageUrl))
+                    {
+                        <img class="service-image-fluid" src="@service.ImageUrl" alt="" loading="lazy" />
+                    }
+                    else
+                    {
+                        <div class="service-placeholder-media-box" aria-hidden="true">
+                            <img src="~/images/service-placeholder.svg" alt="" class="placeholder-svg" style="width:48px;height:48px;" />
+                        </div>
+                    }
+                    <div class="service-duration-badge tnum">@service.DurationMinutes мин</div>
+                </div>
+                
+                <div class="service-display-card__body">
+                    <div class="service-title-row">
+                        <h3 class="service-card-name" style="font-size: 1.1rem;">@service.Name</h3>
+                        <span class="service-card-price tnum" style="font-size: 1.1rem;">@service.Price.ToString("0") ₽</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(service.Description))
+                    {
+                        <p class="service-card-description" style="-webkit-line-clamp: 2;">@service.Description</p>
+                    }
+                </div>
+            </article>
+        }
+    </div>
+</section>

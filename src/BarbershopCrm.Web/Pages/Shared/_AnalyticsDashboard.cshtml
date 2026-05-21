@@ -5,180 +5,192 @@
     var ru = CultureInfo.GetCultureInfo("ru-RU");
     var byStatus = Model.ByStatus;
     var funnel = Model.SalesFunnel;
+    var bySource = Model.BySource;
+
     var statusBars = new (string Label, int Value, string Css, string Icon)[]
     {
-        ("Создана",     byStatus.Created,   "status-created", "M12 5v14M5 12h14"),
-        ("Подтверждена",byStatus.Confirmed, "status-confirmed", "M20 6L9 17l-5-5"),
-        ("Завершена",   byStatus.Completed, "status-completed", "M22 11.08V12a10 10 0 1 1-5.93-9.14"),
-        ("Отменена",    byStatus.Cancelled, "status-cancelled", "M18 6L6 18M6 6l12 12"),
-        ("Не пришёл",   byStatus.NoShow,    "status-noshow", "M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"),
+        ("Создана",      byStatus.Created,   "created",   "M12 5v14M5 12h14"),
+        ("Подтверждена", byStatus.Confirmed, "confirmed", "M20 6L9 17l-5-5"),
+        ("Завершена",    byStatus.Completed, "completed", "M22 11.08V12a10 10 0 1 1-5.93-9.14"),
+        ("Отменена",     byStatus.Cancelled, "cancelled", "M18 6L6 18M6 6l12 12"),
+        ("Не пришёл",    byStatus.NoShow,    "noshow",    "M18.36 6.64a9 9 0 1 1-12.73 0")
     };
+
+    var sourceBars = new (string Label, int Value, string Css, string Icon)[]
+    {
+        ("Онлайн-запись",  bySource.Online, "online", "M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7"),
+        ("Администратор", bySource.Admin,  "admin",  "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 .8.7A2 2 0 0 1 22 16.92z"),
+        ("Через лиды",     bySource.Lead,   "lead",   "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"),
+    };
+
     var maxStatus = Math.Max(1, statusBars.Max(x => x.Value));
+    var maxSource = Math.Max(1, sourceBars.Max(x => x.Value));
     var maxUtil = Math.Max(1m, Model.Utilization.Count == 0 ? 1m : Model.Utilization.Max(u => u.UtilizationPercent));
+
     string Money(decimal v) => v.ToString("#,##0.00", ru) + " ₽";
     string Percent(decimal v) => v.ToString("0.0", ru) + " %";
-    var funnelLeadConv = funnel.LeadsSubmittedInPeriod <= 0
-        ? "—"
-        : Percent((decimal)funnel.BookingsFromLeadsInPeriod / funnel.LeadsSubmittedInPeriod * 100m);
-    var funnelCompleteConv = funnel.BookingsFromLeadsInPeriod <= 0
-        ? "—"
-        : Percent((decimal)funnel.CompletedBookingsFromLeadsInPeriod / funnel.BookingsFromLeadsInPeriod * 100m);
+
+    var funnelLeadConv = funnel.LeadsSubmittedInPeriod <= 0 ? "0.0 %" : Percent((decimal)funnel.BookingsFromLeadsInPeriod / funnel.LeadsSubmittedInPeriod * 100m);
+    var funnelCompleteConv = funnel.BookingsFromLeadsInPeriod <= 0 ? "0.0 %" : Percent((decimal)funnel.CompletedBookingsFromLeadsInPeriod / funnel.BookingsFromLeadsInPeriod * 100m);
 }
 
-<section class="sales-funnel" aria-labelledby="sales-funnel-title">
-    <div class="sales-funnel__header">
-        <h3 id="sales-funnel-title">Воронка: заявки → записи из заявок → завершено</h3>
-        <p class="sales-funnel__hint">
-            Заявки считаются по дате создания; записи с источником «Из заявки» — по дате создания записи; завершённые — записи из заявок со статусом «Завершена» за выбранный период.
-        </p>
+<section class="sales-funnel-card" aria-labelledby="sales-funnel-title">
+    <div class="sales-funnel-card__header">
+        <div class="header-icon-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+            </svg>
+            <h3 id="sales-funnel-title">Маркетинговая воронка обработки заявок</h3>
+        </div>
+        <p class="sales-funnel-card__hint">Анализ сквозной конверсии из холодного лида в завершённый визит у кресла</p>
     </div>
-    <div class="sales-funnel__steps">
-        <div class="sales-funnel__step">
-            <span class="sales-funnel__step-value">@funnel.LeadsSubmittedInPeriod</span>
-            <span class="sales-funnel__step-label">Заявок (вход)</span>
+    
+    <div class="funnel-pipeline">
+        <div class="funnel-stage funnel-stage--first">
+            <div class="funnel-stage__info">
+                <span class="funnel-stage__label">Входящие заявки</span>
+                <span class="funnel-stage__value">@funnel.LeadsSubmittedInPeriod</span>
+            </div>
+            <div class="funnel-stage__meta">Создано на сайте</div>
         </div>
-        <div class="sales-funnel__arrow" aria-hidden="true">→</div>
-        <div class="sales-funnel__step">
-            <span class="sales-funnel__step-value">@funnel.BookingsFromLeadsInPeriod</span>
-            <span class="sales-funnel__step-label">Записей из заявок · конверсия @funnelLeadConv</span>
+        
+        <div class="funnel-conversion" title="Конверсия из заявки в бронирование">
+            <div class="funnel-conversion__line"></div>
+            <div class="funnel-conversion__badge">@funnelLeadConv конверсия</div>
+            <div class="funnel-conversion__line"></div>
         </div>
-        <div class="sales-funnel__arrow" aria-hidden="true">→</div>
-        <div class="sales-funnel__step">
-            <span class="sales-funnel__step-value">@funnel.CompletedBookingsFromLeadsInPeriod</span>
-            <span class="sales-funnel__step-label">Завершено из этих записей · @funnelCompleteConv</span>
+        
+        <div class="funnel-stage funnel-stage--second">
+            <div class="funnel-stage__info">
+                <span class="funnel-stage__label">Создано записей</span>
+                <span class="funnel-stage__value">@funnel.BookingsFromLeadsInPeriod</span>
+            </div>
+            <div class="funnel-stage__meta">Обработано админом</div>
+        </div>
+        
+        <div class="funnel-conversion" title="Конверсия из бронирования в успешный визит">
+            <div class="funnel-conversion__line"></div>
+            <div class="funnel-conversion__badge">@funnelCompleteConv до Tribu</div>
+            <div class="funnel-conversion__line"></div>
+        </div>
+        
+        <div class="funnel-stage funnel-stage--third">
+            <div class="funnel-stage__info">
+                <span class="funnel-stage__label">Успешные визиты</span>
+                <span class="funnel-stage__value">@funnel.CompletedBookingsFromLeadsInPeriod</span>
+            </div>
+            <div class="funnel-stage__meta">Касса закрыта</div>
         </div>
     </div>
 </section>
 
-<div class="kpi-grid">
-    <div class="kpi-card kpi-card--primary">
-        <div class="kpi-card__icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
+<div class="kpi-dashboard-grid">
+    <div class="kpi-metric-card kpi-metric-card--revenue">
+        <div class="kpi-metric-card__header">
+            <span class="kpi-metric-card__label">Общая выручка</span>
+            <div class="kpi-metric-card__icon icon-box-green">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+            </div>
         </div>
-        <div class="kpi-card__content">
-            <span class="kpi-card__label">Всего записей</span>
-            <span class="kpi-card__value">@Model.TotalBookings</span>
-            <span class="kpi-card__hint">@Model.From.ToString("dd.MM") — @Model.To.ToString("dd.MM.yyyy")</span>
-        </div>
-    </div>
-
-    <div class="kpi-card kpi-card--success">
-        <div class="kpi-card__icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="1" x2="12" y2="23"></line>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-            </svg>
-        </div>
-        <div class="kpi-card__content">
-            <span class="kpi-card__label">Выручка</span>
-            <span class="kpi-card__value">@Money(Model.Revenue)</span>
-            <span class="kpi-card__hint">по завершённым визитам</span>
+        <div class="kpi-metric-card__body">
+            <span class="kpi-metric-card__value">@Money(Model.Revenue)</span>
+            <span class="kpi-metric-card__trend">По выполненным визитам</span>
         </div>
     </div>
 
-    <div class="kpi-card kpi-card--info">
-        <div class="kpi-card__icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                <line x1="7" y1="7" x2="7.01" y2="7"></line>
-            </svg>
+    <div class="kpi-metric-card">
+        <div class="kpi-metric-card__header">
+            <span class="kpi-metric-card__label">Средний чек</span>
+            <div class="kpi-metric-card__icon icon-box-blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <circle cx="7" cy="7" r=".5" fill="currentColor"></circle>
+                </svg>
+            </div>
         </div>
-        <div class="kpi-card__content">
-            <span class="kpi-card__label">Средний чек</span>
-            <span class="kpi-card__value">@Money(Model.AverageTicket)</span>
-            <span class="kpi-card__hint">@Model.CompletedVisits визитов</span>
-        </div>
-    </div>
-
-    <div class="kpi-card kpi-card--accent">
-        <div class="kpi-card__icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-        </div>
-        <div class="kpi-card__content">
-            <span class="kpi-card__label">Повторные клиенты</span>
-            <span class="kpi-card__value">@Percent(Model.RepeatClientsRate * 100m)</span>
-            <span class="kpi-card__hint">@Model.RepeatClients из @Model.ClientsWithAtLeastOneCompletedVisit</span>
+        <div class="kpi-metric-card__body">
+            <span class="kpi-metric-card__value">@Money(Model.AverageTicket)</span>
+            <span class="kpi-metric-card__trend">Всего сессий: @Model.CompletedVisits</span>
         </div>
     </div>
 
-    <div class="kpi-card kpi-card--warning">
-        <div class="kpi-card__icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-                <line x1="9" y1="9" x2="15" y2="15"></line>
-            </svg>
+    <div class="kpi-metric-card">
+        <div class="kpi-metric-card__header">
+            <span class="kpi-metric-card__label">Всего записей</span>
+            <div class="kpi-metric-card__icon icon-box-purple">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+            </div>
         </div>
-        <div class="kpi-card__content">
-            <span class="kpi-card__label">Отмены</span>
-            <span class="kpi-card__value">@byStatus.Cancelled</span>
-            <span class="kpi-card__hint">за период</span>
+        <div class="kpi-metric-card__body">
+            <span class="kpi-metric-card__value">@Model.TotalBookings</span>
+            <span class="kpi-metric-card__trend">Включая все статусы</span>
         </div>
     </div>
 
-    <div class="kpi-card kpi-card--error">
-        <div class="kpi-card__icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
-            </svg>
+    <div class="kpi-metric-card">
+        <div class="kpi-metric-card__header">
+            <span class="kpi-metric-card__label">Удержание (Retention)</span>
+            <div class="kpi-metric-card__icon icon-box-orange">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                </svg>
+            </div>
         </div>
-        <div class="kpi-card__content">
-            <span class="kpi-card__label">No-show</span>
-            <span class="kpi-card__value">@byStatus.NoShow</span>
-            <span class="kpi-card__hint">не пришли</span>
+        <div class="kpi-metric-card__body">
+            <span class="kpi-metric-card__value">@Percent(Model.RepeatClientsRate * 100m)</span>
+            <span class="kpi-metric-card__trend">@Model.RepeatClients из @Model.ClientsWithAtLeastOneCompletedVisit вернулись</span>
+        </div>
+    </div>
+
+    <div class="kpi-metric-card kpi-metric-card--danger">
+        <div class="kpi-metric-card__header">
+            <span class="kpi-metric-card__label">Срывы / Отмены</span>
+            <span class="badge badge--danger">@byStatus.Cancelled записей</span>
+        </div>
+    </div>
+
+    <div class="kpi-metric-card kpi-metric-card--warning">
+        <div class="kpi-metric-card__header">
+            <span class="kpi-metric-card__label">Неявки (No-Show)</span>
+            <span class="badge badge--warning">@byStatus.NoShow гостей</span>
         </div>
     </div>
 </div>
 
-<div class="analytics-charts">
-    <section class="chart-card">
-        <div class="chart-card__header">
-            <h3>Распределение по статусам</h3>
-            <span class="chart-card__total">Всего: @byStatus.Total</span>
+<div class="analytics-visualization-row">
+    <section class="visual-chart-box">
+        <div class="visual-chart-box__header">
+            <h4>Структура записей по статусам</h4>
+            <span class="visual-chart-box__summary">Общий объем: @byStatus.Total</span>
         </div>
         @if (byStatus.Total == 0)
         {
-            <div class="chart-card__empty">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                </svg>
-                <p>За выбранный период записей нет</p>
-            </div>
+            <div class="visual-chart-box__empty">Нет данных о записях</div>
         }
         else
         {
-            <div class="status-bars">
+            <div class="custom-progress-list">
                 @foreach (var bar in statusBars)
                 {
                     var pct = (decimal)bar.Value / maxStatus * 100m;
                     var valuePct = byStatus.Total > 0 ? (decimal)bar.Value / byStatus.Total * 100m : 0m;
-                    <div class="status-bar">
-                        <div class="status-bar__header">
-                            <div class="status-bar__label">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="@bar.Icon"></path>
-                                </svg>
-                                <span>@bar.Label</span>
-                            </div>
-                            <div class="status-bar__stats">
-                                <span class="status-bar__value">@bar.Value</span>
-                                <span class="status-bar__percent">@Percent(valuePct)</span>
-                            </div>
+                    <div class="custom-progress-item">
+                        <div class="custom-progress-item__info">
+                            <span class="item-label">@bar.Label</span>
+                            <span class="item-numeric"><strong>@bar.Value</strong> <small>(@Percent(valuePct))</small></span>
                         </div>
-                        <div class="status-bar__track">
-                            <div class="status-bar__fill status-bar__fill--@bar.Css" style="width: @pct.ToString("0.0", CultureInfo.InvariantCulture)%"></div>
+                        <div class="custom-progress-item__track">
+                            <div class="custom-progress-item__bar bar-status-@bar.Css" style="width: @pct.ToString("0.0", CultureInfo.InvariantCulture)%"></div>
                         </div>
                     </div>
                 }
@@ -186,48 +198,29 @@
         }
     </section>
 
-    <section class="chart-card">
-        <div class="chart-card__header">
-            <h3>Загрузка мастеров</h3>
+    <section class="visual-chart-box">
+        <div class="visual-chart-box__header">
+            <h4>Каналы привлечения и записи</h4>
+            <span class="visual-chart-box__summary">Потоков: @bySource.Total</span>
         </div>
-        @if (Model.Utilization.Count == 0)
+        @if (bySource.Total == 0)
         {
-            <div class="chart-card__empty">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <p>Нет данных по загрузке за период</p>
-            </div>
+            <div class="visual-chart-box__empty">Нет зарегистрированных источников</div>
         }
         else
         {
-            <div class="utilization-list">
-                @foreach (var u in Model.Utilization)
+            <div class="custom-progress-list">
+                @foreach (var bar in sourceBars)
                 {
-                    var pct = u.UtilizationPercent;
-                    var rel = (decimal)pct / maxUtil * 100m;
-                    <div class="utilization-item">
-                        <div class="utilization-item__header">
-                            <div class="utilization-item__master">
-                                <div class="utilization-item__avatar">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="12" cy="7" r="4"></circle>
-                                    </svg>
-                                </div>
-                                <span class="utilization-item__name">@u.MasterName</span>
-                            </div>
-                            <span class="utilization-item__percent">@Percent(pct)</span>
+                    var pct = (decimal)bar.Value / maxSource * 100m;
+                    var valuePct = bySource.Total > 0 ? (decimal)bar.Value / bySource.Total * 100m : 0m;
+                    <div class="custom-progress-item">
+                        <div class="custom-progress-item__info">
+                            <span class="item-label">@bar.Label</span>
+                            <span class="item-numeric"><strong>@bar.Value</strong> <small>(@Percent(valuePct))</small></span>
                         </div>
-                        <div class="utilization-item__bar">
-                            <div class="utilization-item__fill" style="width: @rel.ToString("0.0", CultureInfo.InvariantCulture)%"></div>
-                        </div>
-                        <div class="utilization-item__stats">
-                            <span>Занято: <strong>@u.BookedMinutes мин</strong></span>
-                            <span>Запланировано: <strong>@u.WorkMinutes мин</strong></span>
+                        <div class="custom-progress-item__track">
+                            <div class="custom-progress-item__bar bar-source-@bar.Css" style="width: @pct.ToString("0.0", CultureInfo.InvariantCulture)%"></div>
                         </div>
                     </div>
                 }
@@ -236,43 +229,80 @@
     </section>
 </div>
 
-<section class="chart-card chart-card--full">
-    <div class="chart-card__header">
-        <h3>Топ услуг</h3>
+<section class="visual-chart-box visual-chart-box--full">
+    <div class="visual-chart-box__header">
+        <h4>Коэффициент утилизации рабочего времени (Загрузка мастеров)</h4>
+        <p class="visual-chart-box__hint">Процентное соотношение забронированных минут стрижек к общей рабочей смене мастера</p>
     </div>
-    @if (Model.TopServices.Count == 0)
+    @if (Model.Utilization.Count == 0)
     {
-        <div class="chart-card__empty">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                <line x1="7" y1="7" x2="7.01" y2="7"></line>
-            </svg>
-            <p>За выбранный период нет данных</p>
-        </div>
+        <div class="visual-chart-box__empty">Нет расписаний и записей мастеров на этот период</div>
     }
     else
     {
-        <div class="services-table">
-            @foreach (var t in Model.TopServices)
+        <div class="masters-utilization-grid">
+            @foreach (var u in Model.Utilization)
             {
-                <div class="service-row">
-                    <div class="service-row__icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                        </svg>
+                var pct = u.UtilizationPercent;
+                var rel = (decimal)pct / maxUtil * 100m;
+                var colorClass = pct < 30m ? "util-low" : pct > 85m ? "util-overloaded" : "util-optimal";
+
+                <div class="master-util-row">
+                    <div class="master-util-row__profile">
+                        <div class="master-avatar-placeholder">@u.MasterName.Substring(0, 1)</div>
+                        <div class="master-meta-data">
+                            <span class="master-name">@u.MasterName</span>
+                            <span class="master-time-counters">Занято: <strong>@u.BookedMinutes мин</strong> / План: @u.WorkMinutes мин</span>
+                        </div>
                     </div>
-                    <div class="service-row__name">@t.ServiceName</div>
-                    <div class="service-row__count">
-                        <span class="service-row__label">Записей</span>
-                        <span class="service-row__value">@t.Count</span>
+                    <div class="master-util-row__progress">
+                        <div class="custom-progress-item__track">
+                            <div class="custom-progress-item__bar @colorClass" style="width: @rel.ToString("0.0", CultureInfo.InvariantCulture)%"></div>
+                        </div>
                     </div>
-                    <div class="service-row__revenue">
-                        <span class="service-row__label">Выручка</span>
-                        <span class="service-row__value">@Money(t.Revenue)</span>
+                    <div class="master-util-row__percentage">
+                        <span class="util-percent-text @colorClass">@Percent(pct)</span>
                     </div>
                 </div>
             }
+        </div>
+    }
+</section>
+
+<section class="visual-chart-box visual-chart-box--full">
+    <div class="visual-chart-box__header">
+        <h4>Рейтинг популярности услуг и выручка</h4>
+    </div>
+    @if (Model.TopServices.Count == 0)
+    {
+        <div class="visual-chart-box__empty">Продаж услуг за период не зафиксировано</div>
+    }
+    else
+    {
+        <div class="premium-table-container">
+            <table class="premium-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">Ранг</th>
+                        <th>Наименование услуги</th>
+                        <th style="text-align: center;">Количество сессий</th>
+                        <th style="text-align: right;">Суммарная выручка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int rank = 1; }
+                    @foreach (var t in Model.TopServices)
+                    {
+                        <tr>
+                            <td><span class="table-rank-badge">#@rank</span></td>
+                            <td><strong>@t.ServiceName</strong></td>
+                            <td style="text-align: center;" class="table-numeric-bold">@t.Count</td>
+                            <td style="text-align: right;" class="table-currency-highlight">@Money(t.Revenue)</td>
+                        </tr>
+                        rank++;
+                    }
+                </tbody>
+            </table>
         </div>
     }
 </section>

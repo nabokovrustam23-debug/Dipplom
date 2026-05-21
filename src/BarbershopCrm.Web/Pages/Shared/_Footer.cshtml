@@ -15,98 +15,71 @@
         .ToListAsync();
 }
 
-<footer class="site-footer" role="contentinfo">
-    <div class="site-footer__inner">
-        <div class="site-footer__col site-footer__col--brand">
-            <div class="site-footer__brand-wrapper">
-                <img src="~/images/logo.svg" class="site-footer__brand-icon" width="40" height="40" alt="Тихий час" />
-                <div class="site-footer__brand">Тихий час</div>
+<footer class="site-footer-premium" role="contentinfo">
+    <div class="site-footer-premium__inner">
+        
+        <div class="site-footer-premium__col site-footer-premium__col--brand">
+            <div class="footer-brand-wrapper">
+                <img src="~/images/logo.svg" class="footer-brand-icon-img" width="40" height="40" alt="Тихий час" />
+                <div class="footer-brand-title-text">Тихий час</div>
             </div>
-            <p class="site-footer__lead">Премиальная сеть барбершопов в Краснодаре. Профессиональный уход, классические стрижки и современный сервис онлайн-записи.</p>
-            <div class="site-footer__socials" aria-label="Социальные сети">
-                <a href="#" rel="noopener" aria-label="Telegram" class="social-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
-                    </svg>
-                </a>
-                <a href="#" rel="noopener" aria-label="ВКонтакте" class="social-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.38 12.38c.37.37.77.72 1.09 1.13.14.18.28.37.38.59.15.31.01.66-.26.68l-1.67.01c-.45.04-.81-.14-1.11-.44-.24-.24-.46-.49-.69-.74-.1-.11-.2-.21-.32-.29-.24-.16-.45-.12-.59.13-.15.25-.18.54-.2.82-.02.41-.16.52-.57.54-.87.03-1.7-.09-2.48-.5-.67-.35-1.19-.86-1.64-1.46-.88-1.16-1.55-2.45-2.14-3.79-.13-.29-.03-.45.29-.46.53-.01 1.07-.01 1.6 0 .22.01.36.13.45.33.31.72.7 1.39 1.18 2 .15.19.3.38.5.52.22.16.4.11.51-.14.07-.16.11-.33.13-.51.05-.48.06-.96-.01-1.44-.04-.29-.21-.48-.5-.54-.15-.03-.13-.09-.05-.18.12-.14.23-.23.45-.23h1.67c.26.05.32.17.36.44v1.89c-.01.11.05.43.24.5.15.05.25-.07.34-.17.41-.44.71-.96.98-1.49.12-.23.22-.47.32-.71.07-.17.19-.26.38-.25l1.83.01c.05 0 .11 0 .16.01.29.05.37.18.28.46-.14.43-.43.77-.71 1.11-.3.36-.61.71-.9 1.08-.26.33-.24.5.04.79z"/>
-                    </svg>
-                </a>
-                <a href="#" rel="noopener" aria-label="Instagram" class="social-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                    </svg>
-                </a>
-            </div>
+            <p class="footer-brand-lead-speech">Премиальная краснодарская сеть мужских парикмахерских. Профессиональный уход, классические стрижки и современная автоматизированная CRM-система онлайн-контроля записей.</p>
         </div>
 
-        <div class="site-footer__col">
-            <h4>Навигация</h4>
-            <ul class="site-footer__list">
-                <li><a asp-page="/Index">Главная</a></li>
-                <li><a asp-page="/Branches/Index">Филиалы</a></li>
-                <li><a asp-page="/Services/Index">Услуги и цены</a></li>
+        <div class="site-footer-premium__col">
+            <h5>Карта разделов</h5>
+            <ul class="footer-links-list-nodes">
+                <li><a asp-page="/Index">Главная страница</a></li>
+                <li><a asp-page="/Branches/Index">Действующие филиалы</a></li>
+                <li><a asp-page="/Services/Index">Услуги и прейскурант</a></li>
+                
                 @if (current is not null && current.RoleCode == RoleCode.Client)
                 {
-                    <li><a asp-page="/BookingFlow/New">Записаться онлайн</a></li>
-                    <li><a asp-page="/Account/Bookings/Index">Мои записи</a></li>
+                    <li><a asp-page="/BookingFlow/New">Онлайн-бронирование</a></li>
+                    <li><a asp-page="/Account/Bookings/Index">Журнал моих записей</a></li>
                 }
                 else if (current is null)
                 {
-                    <li><a asp-page="/Lead/Index">Оставить заявку</a></li>
-                }
-                @if (current is null)
-                {
-                    <li><a asp-page="/Account/Login">Вход в кабинет</a></li>
+                    <li><a asp-page="/Lead/Index">Отправить заявку</a></li>
+                    <li><a asp-page="/Account/Login">Вход в личный кабинет</a></li>
                 }
             </ul>
         </div>
 
-        <div class="site-footer__col">
-            <h4>Наши филиалы</h4>
-            <ul class="site-footer__list site-footer__list--branches">
+        <div class="site-footer-premium__col">
+            <h5>Локации филиалов</h5>
+            <ul class="footer-links-list-nodes footer-branches-list-nodes">
                 @foreach (var b in branches)
                 {
-                    <li class="branch-item">
-                        <a asp-page="/Branches/Details" asp-route-id="@b.BranchId" class="branch-item__name">@b.Name</a>
-                        <span class="branch-item__address">@b.Address</span>
-                        <div class="branch-item__meta">
+                    <li class="footer-branch-item-node">
+                        <a asp-page="/Branches/Details" asp-route-id="@b.BranchId" class="f-branch-name">@b.Name</a>
+                        <span class="f-branch-address">@b.Address</span>
+                        <div class="f-branch-meta-row tnum">
                             @if (!string.IsNullOrWhiteSpace(b.Phone))
                             {
-                                <a class="branch-item__phone tnum" href="tel:@b.Phone.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "")">@b.Phone</a>
-                                <span class="branch-item__hours tnum">@b.OpeningTime.ToString("HH:mm")–@b.ClosingTime.ToString("HH:mm")</span>
+                                <a class="f-branch-phone" href="tel:@b.Phone.Replace(" ", "").Replace("(", "").Replace(")", "").Replace("-", "")">@b.Phone</a>
                             }
-                            else
-                            {
-                                <span class="branch-item__hours tnum">@b.OpeningTime.ToString("HH:mm")–@b.ClosingTime.ToString("HH:mm")</span>
-                            }
+                            <span class="f-branch-hours">@b.OpeningTime.ToString("HH:mm")–@b.ClosingTime.ToString("HH:mm")</span>
                         </div>
                     </li>
                 }
             </ul>
         </div>
 
-        <div class="site-footer__col">
-            <h4>Контакты</h4>
-            <ul class="site-footer__list">
-                <li><a href="tel:+78612345678">+7 (861) 234-56-78</a></li>
+        <div class="site-footer-premium__col">
+            <h5>Центральный офис</h5>
+            <ul class="footer-links-list-nodes">
+                <li><a href="tel:+78612345678" class="tnum" style="font-weight:600; font-size: 1.05rem; color: var(--color-text-main);">+7 (861) 234-56-78</a></li>
                 <li><a href="mailto:info@tihiychas.ru">info@tihiychas.ru</a></li>
-            </ul>
-            <h4 style="margin-top: var(--space-4);">Режим работы</h4>
-            <ul class="site-footer__list">
-                <li class="muted">Ежедневно</li>
-                <li class="muted tnum">10:00 – 22:00</li>
+                <li style="margin-top: 1rem;"><small style="color: var(--color-text-muted); text-transform: uppercase; font-size: 0.7rem; font-weight:600; letter-spacing: 0.5px;">Центральный режим</small></li>
+                <li class="tnum" style="font-size: 0.9rem; color: var(--color-text-main);">Ежедневно с 10:00 до 22:00</li>
             </ul>
         </div>
     </div>
 
-    <div class="site-footer__bottom">
-        <span>© @year «Тихий час». Все права защищены.</span>
-        <span class="site-footer__sep">·</span>
-        <a asp-page="/Privacy">Политика конфиденциальности</a>
+    <div class="site-footer-premium__bottom">
+        <span>© @year Сеть барбершопов «Тихий час». Все права защищены.</span>
+        <span class="site-footer-premium__sep">·</span>
+        <a asp-page="/Privacy">Политика конфиденциальности по 152-ФЗ</a>
     </div>
 </footer>

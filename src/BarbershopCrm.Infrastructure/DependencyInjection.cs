@@ -2,6 +2,7 @@ using BarbershopCrm.Infrastructure.Analytics;
 using BarbershopCrm.Infrastructure.Auth;
 using BarbershopCrm.Infrastructure.Data;
 using BarbershopCrm.Infrastructure.Loyalty;
+using BarbershopCrm.Infrastructure.Scheduling;
 using BarbershopCrm.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -35,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddScoped<ILoyaltyService, LoyaltyService>();
         services.AddScoped<ILoyaltyDiscountResolver, LoyaltyDiscountResolver>();
+        services.AddScoped<ITimelineService, TimelineService>();
 
         return services;
     }

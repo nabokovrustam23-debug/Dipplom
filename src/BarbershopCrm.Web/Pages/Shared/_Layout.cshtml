@@ -7,87 +7,114 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@(ViewData["Title"] ?? "Тихий час") · CRM</title>
+    <title>@(ViewData["Title"] ?? "Тихий час") · Сеть барбершопов</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
+<body class="premium-app-body">
     <a class="skip-link" href="#main-content">Перейти к содержимому</a>
-    <div class="app-shell">
-        <header class="app-header">
-            <div class="app-header__inner">
-                <a class="brand" asp-page="/Index">
-                    <img src="~/images/logo.svg" alt="Тихий час" class="brand-logo" width="40" height="40" />
-                    <div class="brand-text">
-                        <span class="brand-mark">Тихий час</span>
-                        <span class="brand-tag">барбершопы Краснодара</span>
+    
+    <div class="app-shell animate-fade-in">
+        <header class="app-header-premium">
+            <div class="app-header-premium__inner">
+                
+                <a class="brand-link-node" asp-page="/Index">
+                    <img src="~/images/logo.svg" alt="Тихий час" class="brand-logo-img" width="40" height="40" />
+                    <div class="brand-text-block">
+                        <span class="brand-title">Тихий час</span>
+                        <span class="brand-subtitle">Мужские парикмахерские</span>
                     </div>
                 </a>
-                <nav class="app-nav" aria-label="Главное меню">
-                    <a asp-page="/Index" class="app-nav__link">Главная</a>
-                    <a asp-page="/Services/Index" class="app-nav__link">Услуги</a>
-                    <a asp-page="/Branches/Index" class="app-nav__link">Филиалы</a>
-                    @if (current is not null && current.RoleCode == RoleCode.Client)
-                    {
-                        <a asp-page="/BookingFlow/New" class="app-nav__link app-nav__link--primary">Записаться</a>
-                        <a asp-page="/Account/Bookings/Index" class="app-nav__link">Мои записи</a>
-                    }
-                    else if (current is null)
-                    {
-                        <a asp-page="/Lead/Index" class="app-nav__link app-nav__link--primary">Записаться</a>
-                    }
+                
+                <nav class="app-nav-premium" aria-label="Главное меню">
+                    <div class="nav-links-cluster">
+                        <a asp-page="/Index" class="nav-node-link">Главная</a>
+                        <a asp-page="/Services/Index" class="nav-node-link">Услуги</a>
+                        <a asp-page="/Branches/Index" class="nav-node-link">Филиалы</a>
+                        
+                        @if (current is not null && current.RoleCode == RoleCode.Client)
+                        {
+                            <a asp-page="/Account/Bookings/Index" class="nav-node-link">Мои записи</a>
+                        }
+                    </div>
 
-                    @if (current is not null && current.RoleCode is RoleCode.Owner or RoleCode.Admin)
-                    {
-                        <a asp-page="/Admin/Schedule/Index" class="app-nav__link nav-manage">Управление</a>
-                    }
-                    else if (current is not null && current.RoleCode == RoleCode.Master)
-                    {
-                        <a asp-page="/MasterArea/Bookings" class="app-nav__link nav-manage">Расписание</a>
-                    }
+                    <div class="app-nav-premium__actions">
+                        @if (current is not null && current.RoleCode == RoleCode.Client)
+                        {
+                            <a asp-page="/BookingFlow/New" class="btn btn--accent-compact">Записаться онлайн</a>
+                        }
+                        else if (current is null)
+                        {
+                            <a asp-page="/Lead/Index" class="btn btn--accent-compact">Записаться по заявке</a>
+                        }
 
-                    <div class="app-nav__actions">
+                        @if (current is not null && current.RoleCode is RoleCode.Owner or RoleCode.Admin)
+                        {
+                            <a asp-page="/Admin/Schedule/Index" class="btn btn--outline-compact btn-manage-badge">Панель управления</a>
+                        }
+                        else if (current is not null && current.RoleCode == RoleCode.Master)
+                        {
+                            <a asp-page="/MasterArea/Bookings" class="btn btn--outline-compact btn-manage-badge">Моё расписание</a>
+                        }
+
+                        <span class="nav-actions-divider"></span>
+
                         @if (current is null)
                         {
-                            <a asp-page="/Account/Login" class="btn btn--ghost btn--sm">Войти</a>
+                            <a asp-page="/Account/Login" class="btn btn--ghost-compact">Войти</a>
                         }
                         else
                         {
-                            <a asp-page="/Profile/Index" class="user-pill" title="@current.FullName · @current.RoleCode">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                                @(string.IsNullOrEmpty(current.ShortName) ? current.FullName : current.ShortName)
-                            </a>
-                            <form method="post" asp-page="/Account/Logout" class="logout-form">
-                                <button type="submit" class="btn-link btn-link--subtle">Выход</button>
-                            </form>
+                            var roleLabel = current.RoleCode switch
+                            {
+                                RoleCode.Owner => "Владелец",
+                                RoleCode.Admin => "Администратор",
+                                RoleCode.Master => "Мастер",
+                                RoleCode.Client => "Гость",
+                                _ => current.RoleCode,
+                            };
+                            
+                            <div class="user-pill-wrapper-node">
+                                <a asp-page="/Profile/Index" class="user-pill-node" title="@current.FullName · @current.RoleCode">
+                                    <div class="user-pill-avatar-micro">@current.FullName.Substring(0,1).ToUpper()</div>
+                                    <div class="user-pill-text">
+                                        <span class="user-pill-name">@(string.IsNullOrEmpty(current.ShortName) ? current.FullName : current.ShortName)</span>
+                                        <span class="user-pill-role-tag">@roleLabel</span>
+                                    </div>
+                                </a>
+                                <form method="post" asp-page="/Account/Logout" class="logout-form-inline">
+                                    <button type="submit" class="btn-logout-icon-only" title="Выйти из кабинета">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
                         }
                     </div>
                 </nav>
             </div>
         </header>
 
-        <main class="app-main" id="main-content" tabindex="-1">
+        <main class="app-main-premium" id="main-content" tabindex="-1">
             @{
                 var successMsg = TempData["Success"] as string;
                 var errorMsg = TempData["Error"] as string;
             }
             @if (!string.IsNullOrEmpty(successMsg))
             {
-                <div class="toast toast--success" role="status" aria-live="polite">
+                <div class="toast toast--success alert--modern animate-scale-up" role="status" aria-live="polite">
                     <span class="toast__icon" aria-hidden="true">✓</span>
                     <span class="toast__text">@successMsg</span>
                 </div>
             }
             @if (!string.IsNullOrEmpty(errorMsg))
             {
-                <div class="toast toast--error" role="alert" aria-live="assertive">
+                <div class="toast toast--error alert--modern animate-scale-up" role="alert" aria-live="assertive">
                     <span class="toast__icon" aria-hidden="true">!</span>
                     <span class="toast__text">@errorMsg</span>
                 </div>

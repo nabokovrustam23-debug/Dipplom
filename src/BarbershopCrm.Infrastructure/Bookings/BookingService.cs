@@ -128,9 +128,11 @@ public sealed class BookingService : IBookingService
         if (booking.Status is BookingStatus.Cancelled or BookingStatus.Completed or BookingStatus.NoShow)
             return BookingResult.Fail(BookingErrorCode.InvalidStatusTransition, $"Нельзя отменить запись в статусе {booking.Status}.");
 
+        if (actorRole == RoleCode.Master)
+            return BookingResult.Fail(BookingErrorCode.Unauthorized, "Мастер не имеет прав на отмену записей. Обратитесь к администратору.");
+
         if (actorRole == RoleCode.Client)
         {
-            // Client may cancel only their own.
             var ownsBooking = await _db.Clients
                 .Where(c => c.ClientId == booking.ClientId)
                 .Join(_db.Persona, c => c.PersonaId, p => p.PersonaId, (c, p) => p)
@@ -159,6 +161,9 @@ public sealed class BookingService : IBookingService
         if (booking.Status != BookingStatus.Created)
             return BookingResult.Fail(BookingErrorCode.InvalidStatusTransition,
                 "Подтвердить можно только запись со статусом «Создана».");
+
+        if (DateTime.Now >= booking.StartDateTime)
+            return BookingResult.Fail(BookingErrorCode.ValidationFailed, "Нельзя подтвердить запись, время которой уже наступило.");
 
         if (!await ActorOwnsMasterAsync(booking.MasterId, actorUserId, actorRole, ct))
             return BookingResult.Fail(BookingErrorCode.Unauthorized, "Нет прав на подтверждение этой записи.");
@@ -189,7 +194,7 @@ public sealed class BookingService : IBookingService
         booking.Status = BookingStatus.Completed;
         booking.UpdatedAt = DateTime.Now;
 
-        var effectiveAmount = booking.PriceSnapshot * (1 - booking.LoyaltyDiscountPercent / 100m);
+        var effectiveAmount = booking.FinalPrice;
 
         if (booking.Visit is null)
         {
@@ -223,9 +228,8 @@ public sealed class BookingService : IBookingService
         if (!await ActorOwnsMasterAsync(booking.MasterId, actorUserId, actorRole, ct))
             return BookingResult.Fail(BookingErrorCode.Unauthorized, "Нет прав на изменение этой записи.");
 
-        if (DateTime.Now < booking.StartDateTime)
-            return BookingResult.Fail(BookingErrorCode.ValidationFailed,
-                "Отметить «не пришёл» можно не раньше времени начала записи.");
+        if (DateTime.Now < booking.StartDateTime.AddMinutes(15))
+            return BookingResult.Fail(BookingErrorCode.ValidationFailed, "Отметить статус «Не пришёл» можно только через 15 минут после начала записи.");
 
         booking.Status = BookingStatus.NoShow;
         booking.UpdatedAt = DateTime.Now;

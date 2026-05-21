@@ -1,6 +1,7 @@
 using BarbershopCrm.Infrastructure;
 using BarbershopCrm.Infrastructure.Auth;
 using BarbershopCrm.Infrastructure.Data;
+using BarbershopCrm.Infrastructure.Loyalty;
 using BarbershopCrm.Infrastructure.Security;
 using BarbershopCrm.Domain.Enums;
 using BarbershopCrm.Web.Auth;
@@ -54,6 +55,12 @@ try
 
     builder.Services.Configure<BookingOptions>(builder.Configuration.GetSection("Booking"));
     builder.Services.AddScoped<IBookingService, BookingService>();
+
+    builder.Services.AddOptions<LoyaltyOptions>()
+        .Bind(builder.Configuration.GetSection("Loyalty"))
+        .Validate(l => l.Tiers.Count == 0 || l.Tiers.Select(t => t.MinVisits).Distinct().Count() == l.Tiers.Count,
+            "Loyalty:Tiers содержит дубликаты MinVisits")
+        .ValidateOnStart();
 
     var app = builder.Build();
 
